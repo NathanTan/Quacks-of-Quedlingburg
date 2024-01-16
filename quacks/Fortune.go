@@ -8,7 +8,7 @@ type Fortune struct {
 func createFortunes() []Fortune {
 	return []Fortune{
 		{"Temp", 0},
-		{"Temp2", 1}
+		{"Temp2", 1},
 	}
 }
 
