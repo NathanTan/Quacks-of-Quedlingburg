@@ -7,11 +7,17 @@ import (
 func PlayGame(playerNames []string, debug bool) {
 	gs := GameState{}
 	players := setUpPlayers(playerNames)
+	fortuneDeck := createFortunes()
 
 	for i := 1; i < 9; i++ {
 		fmt.Println("Starting Round.")
 
 		// Fortune cards
+		fortuneDeck, fortune := pop(fortuneDeck)
+		fmt.Println("Fortune for the round: " + fortune.Ability)
+		if debug {
+			fmt.Println("Remaining Deck: %d", len(fortuneDeck))
+		}
 
 		// Rat Tails
 
