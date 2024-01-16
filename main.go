@@ -6,6 +6,6 @@ import (
 
 func main() {
 
-	q.PlayGame(true)
+	q.PlayGame([]string{"Nathan", "Leah", "Raymond", "Hannah"}, true)
 
 }

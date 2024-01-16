@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
-func PlayGame(debug bool) {
+func PlayGame(playerNames []string, debug bool) {
 	gs := GameState{}
-	players := []Player{}
+	players := setUpPlayers(playerNames)
 
 	for i := 1; i < 9; i++ {
 		fmt.Println("Starting Round.")
@@ -32,6 +32,8 @@ func PlayGame(debug bool) {
 		// Buy Chips
 
 		/// Spend Rubys
+
+		logPlayers(players)
 
 		// End the game after nine turns
 		if gs.turn > 9 {
@@ -66,4 +68,28 @@ func handleVictoryPoints(players []Player, debug bool) {
 		_, victoryPointsEarned := GetScores(players[i].board)
 		players[i].score = players[i].score + victoryPointsEarned
 	}
+}
+
+func logPlayers(players []Player) {
+	for i := 0; i < len(players); i++ {
+		PrintPlayerStatuses(players[i])
+	}
+}
+
+func setUpPlayers(names []string) []Player {
+	players := []Player{}
+	for i := 0; i < len(names); i++ {
+		players = append(players, Player{
+			names[i],
+			Bag{},
+			Board{},
+			0,
+			0,
+			0,
+			true,
+			7,
+			0})
+	}
+
+	return players
 }

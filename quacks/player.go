@@ -1,5 +1,9 @@
 package quacks
 
+import (
+	"fmt"
+)
+
 type Player struct {
 	name           string
 	bag            Bag
@@ -10,4 +14,9 @@ type Player struct {
 	flask          bool
 	explosionLimit int
 	score          int
+}
+
+func PrintPlayerStatuses(player Player) {
+	fmt.Println("Player:")
+	fmt.Println(player)
 }
