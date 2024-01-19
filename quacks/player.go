@@ -20,3 +20,21 @@ func PrintPlayerStatuses(player Player) {
 	fmt.Println("Player:")
 	fmt.Println(player)
 }
+
+func setUpPlayers(names []string) []Player {
+	players := []Player{}
+	for i := 0; i < len(names); i++ {
+		players = append(players, Player{
+			names[i],
+			Bag{},
+			Board{},
+			0,
+			0,
+			0,
+			true,
+			7,
+			0})
+	}
+
+	return players
+}

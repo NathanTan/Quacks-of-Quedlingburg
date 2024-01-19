@@ -14,7 +14,7 @@ func createFortunes() []Fortune {
 
 func pop(slice []Fortune) ([]Fortune, Fortune) {
 
-	element := slice[len(slice)]
+	element := slice[len(slice)-1]
 	if len(slice) > 0 {
 		slice = slice[:len(slice)-1]
 	}
