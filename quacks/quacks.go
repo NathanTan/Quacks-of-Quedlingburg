@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func PlayGame(playerNames []string, debug bool) {
+func PlayGame(playerNames []string, debug bool) GameState {
 	gs := GameState{}
 	players := setUpPlayers(playerNames)
 	fortuneDeck := createFortunes()
@@ -23,6 +23,9 @@ func PlayGame(playerNames []string, debug bool) {
 		assignRatTails(players, debug)
 
 		// Pull Chips
+		for i := 0; i < len(players); i++ {
+			DrawChip(players[i].bag, true)
+		}
 
 		// Evaluation
 
@@ -56,6 +59,8 @@ func PlayGame(playerNames []string, debug bool) {
 			break
 		}
 	}
+
+	return gs
 
 }
 

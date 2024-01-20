@@ -1,6 +1,6 @@
 package quacks
 
 type Chip struct {
-	_type string
+	color string
 	value int
 }

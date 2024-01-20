@@ -1,17 +1,27 @@
-// package quacks_test
+package quacks_test
 
-// import (
-// 	q "quacks"
-// 	"testing"
-// )
+import (
+	q "quacks"
+	"testing"
+)
 
-// func TestAddition(t *testing.T) {
+func TestAddition(t *testing.T) {
 
-// 	players := q.SetUpPlayers([]string{"Nathan", "Leah", "Raymond", "Hannah"})
-// 	fortuneDeck := q.CreateFortunes()
+	bag := q.Bag{
+		Chips: []q.Chip{
+			q.Chip{color: "blue", value: 4},
+			q.Chip{color: "green", value: 1},
+		},
+		RemainingChips: []q.Chip{
+			q.Chip{color: "blue", value: 4},
+			q.Chip{color: "green", value: 1},
+		},
+	}
 
-// 	result := 2 + 2
-// 	if result != 4 {
-// 		t.Errorf("Expected 2 + 2 to equal 4, but got %d instead", result)
-// 	}
-// }
+	q.DrawChip(bag, true)
+
+	result := 2 + 2
+	if result != 4 {
+		t.Errorf("Expected 2 + 2 to equal 4, but got %d instead", result)
+	}
+}
