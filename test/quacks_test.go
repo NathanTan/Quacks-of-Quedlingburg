@@ -9,19 +9,28 @@ func TestAddition(t *testing.T) {
 
 	bag := q.Bag{
 		Chips: []q.Chip{
-			q.Chip{color: "blue", value: 4},
-			q.Chip{color: "green", value: 1},
+			q.NewChip("blue", 4),
+			q.NewChip("green", 1),
 		},
 		RemainingChips: []q.Chip{
-			q.Chip{color: "blue", value: 4},
-			q.Chip{color: "green", value: 1},
+			q.NewChip("blue", 4),
+			q.NewChip("green", 1),
 		},
 	}
 
-	q.DrawChip(bag, true)
+	if len(bag.RemainingChips) != 2 {
+		t.Errorf("Error")
+	}
 
-	result := 2 + 2
-	if result != 4 {
-		t.Errorf("Expected 2 + 2 to equal 4, but got %d instead", result)
+	chip := q.DrawChip(&bag, true)
+
+	if len(bag.RemainingChips) != 1 {
+		t.Errorf("Error 2")
+	}
+	if len(bag.Chips) != 2 {
+		t.Errorf("Error 3")
+	}
+	if chip != q.NewChip("green", 1) {
+		t.Errorf("Error 4")
 	}
 }

@@ -5,7 +5,7 @@ import (
 )
 
 func PlayGame(playerNames []string, debug bool) GameState {
-	gs := GameState{}
+	gs := CreateGameStates()
 	players := setUpPlayers(playerNames)
 	fortuneDeck := createFortunes()
 	for i := 1; i < 9; i++ {
@@ -22,16 +22,59 @@ func PlayGame(playerNames []string, debug bool) GameState {
 		// Rat Tails
 		assignRatTails(players, debug)
 
-		// Pull Chips
-		for i := 0; i < len(players); i++ {
-			DrawChip(players[i].bag, true)
+		if debug {
+			fmt.Println("Drawing Chips \n")
+		}
+
+		// Shuffle Player's bags
+		shufflePlayersBags(&players)
+
+		// Pull Chips (1 chip for now)
+		for _, player := range players {
+			if len(player.bag.Chips) > 0 {
+				chip := DrawChip(&(player.bag), debug)
+				player.board.chips = append(player.board.chips, chip)
+				if debug {
+					fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
+				}
+			}
 		}
 
 		// Evaluation
 
 		// Bonus Dice
+		for i := 0; i < len(players); i++ {
+
+			roll, description := BonusDiceRoll()
+			switch roll {
+
+			// Give a Pumpkin Chip
+			case 1:
+				AddChip(&players[i].bag, NewChip("orange", 1))
+
+				// Add 1 to their score
+			case 2:
+				players[i].score = players[i].score + 1
+
+				// Add 2 to their score
+			case 4:
+				players[i].score = players[i].score + 2
+
+			case 5:
+				players[i].dropplet = players[i].dropplet + 1
+				// TODO: Add test tube dropplet here
+
+			case 6:
+				players[i].rubyCount = players[i].rubyCount + 1
+
+			}
+			if debug {
+				fmt.Println("Roll Result: " + description)
+			}
+		}
 
 		// Special Chips
+		handleSpecialChips(&players, gs.book, debug)
 
 		// Rubies
 		handleRubies(players, debug)
@@ -148,4 +191,74 @@ func countRatTails(lowScore int, highScore int) int {
 	}
 
 	return tailCount
+}
+
+func handleSpecialChips(players *[]Player, book int, debug bool) {
+
+	// Handle Moths
+	playerMothCounts := []int{}
+
+	// Count all the moths
+	for _, player := range *players {
+		playerMothCounts = append(playerMothCounts, GetChipCount(player.board, "black", debug))
+	}
+
+	if len(*players) > 2 {
+		for i, player := range *players {
+			nextValue := playerMothCounts[(i+1)%len(*players)]
+			prevValue := playerMothCounts[(i-1+len(*players))%len(*players)]
+
+			if playerMothCounts[i] > nextValue && playerMothCounts[i] > prevValue {
+				player.rubyCount = player.rubyCount + 1
+				// TODO: Add option for increasing test tube dropplet
+				player.dropplet = player.dropplet + 1
+			} else if playerMothCounts[i] > nextValue || playerMothCounts[i] > prevValue {
+				// TODO: Add option for increasing test tube dropplet
+				player.dropplet = player.dropplet + 1
+			}
+		}
+	} else {
+		for i, player := range *players {
+			nextValue := playerMothCounts[(i+1)%len(*players)]
+
+			if playerMothCounts[i] > nextValue {
+				player.rubyCount = player.rubyCount + 1
+				// TODO: Add option for increasing test tube dropplet
+				player.dropplet = player.dropplet + 1
+			} else if playerMothCounts[i] == nextValue {
+				// TODO: Add option for increasing test tube dropplet
+				player.dropplet = player.dropplet + 1
+			}
+		}
+	}
+
+	if book == 1 {
+		for _, player := range *players {
+			// Handle Spiders
+			chips := player.board.chips
+
+			// If the last or second to last chip is a spider
+			if chips[len(chips)].color == "green" || chips[len(chips)-1].color == "green" {
+				// Give the player a ruby
+				player.rubyCount = player.rubyCount + 1
+			} else {
+				if debug {
+					fmt.Println("No Spider")
+				}
+			}
+
+			// Handle Ghosts
+			ghostCount := GetChipCount(player.board, "purple", debug)
+			if ghostCount == 1 {
+				player.score = player.score + 1
+			} else if ghostCount == 2 {
+				player.score = player.score + 2
+				player.rubyCount = player.rubyCount + 1
+			} else if ghostCount > 2 {
+				player.score = player.score + 2
+				player.dropplet = player.dropplet + 1
+				// TODO: Add input for choice of dropplet or testTubeDropplet
+			}
+		}
+	}
 }

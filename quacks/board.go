@@ -1,6 +1,7 @@
 package quacks
 
 type Board struct {
+	chips            []Chip
 	nextPosition     int
 	testTubePosition int
 }
@@ -44,4 +45,15 @@ func AssignRubies(board Board) bool {
 	standardBoard := getStandardBoard()
 	rubys := standardBoard[board.nextPosition].hasRuby
 	return rubys
+}
+
+func GetChipCount(board Board, _type string, debug bool) int {
+	count := 0
+	for _, chip := range board.chips {
+		if chip.color == _type {
+			count = count + 1
+		}
+	}
+
+	return count
 }
