@@ -1,40 +1,42 @@
 package quacks
 
 import (
+	"context"
 	"fmt"
 )
 
-func PlayGame(playerNames []string, debug bool) GameState {
-	gs := CreateGameStates()
-	players := setUpPlayers(playerNames)
+func (gs GameState) Input(input Input) {
+	if gs.FSM.Current() == HandleFortune.String() {
+		handleFortune(&gs, input, gs.fortune, gs.debug)
+	}
+
+}
+
+func (gs GameState) StartGame() {
 	fortuneDeck := createFortunes()
+	gs.FSM.Event(context.Background(), "start")
 	for i := 1; i < 9; i++ {
 		fmt.Println("Starting Round.")
 
 		// Fortune cards
-		fmt.Println(fortuneDeck)
-		fortuneDeck, fortune := pop(fortuneDeck)
-		fmt.Println("Fortune for the round: " + fortune.Ability)
-		if debug {
-			fmt.Println(fmt.Sprintf("Remaining Deck: %d", len(fortuneDeck)))
-		}
+		drawFortune(gs, fortuneDeck, gs.debug)
 
 		// Rat Tails
-		assignRatTails(players, debug)
+		assignRatTails(gs.players, gs.debug)
 
-		if debug {
+		if gs.debug {
 			fmt.Println("Drawing Chips \n")
 		}
 
 		// Shuffle Player's bags
-		shufflePlayersBags(&players)
+		shufflePlayersBags(&gs.players)
 
 		// Pull Chips (1 chip for now)
-		for _, player := range players {
+		for _, player := range gs.players {
 			if len(player.bag.Chips) > 0 {
-				chip := DrawChip(&(player.bag), debug)
+				chip := DrawChip(&(player.bag), gs.debug)
 				player.board.chips = append(player.board.chips, chip)
-				if debug {
+				if gs.debug {
 					fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
 				}
 			}
@@ -43,52 +45,52 @@ func PlayGame(playerNames []string, debug bool) GameState {
 		// Evaluation
 
 		// Bonus Dice
-		for i := 0; i < len(players); i++ {
+		for i := 0; i < len(gs.players); i++ {
 
 			roll, description := BonusDiceRoll()
 			switch roll {
 
 			// Give a Pumpkin Chip
 			case 1:
-				AddChip(&players[i].bag, NewChip("orange", 1))
+				AddChip(&gs.players[i].bag, NewChip("orange", 1))
 
 				// Add 1 to their score
 			case 2:
-				players[i].score = players[i].score + 1
+				gs.players[i].score = gs.players[i].score + 1
 
 				// Add 2 to their score
 			case 4:
-				players[i].score = players[i].score + 2
+				gs.players[i].score = gs.players[i].score + 2
 
 			case 5:
-				players[i].dropplet = players[i].dropplet + 1
+				gs.players[i].dropplet = gs.players[i].dropplet + 1
 				// TODO: Add test tube dropplet here
 
 			case 6:
-				players[i].rubyCount = players[i].rubyCount + 1
+				gs.players[i].rubyCount = gs.players[i].rubyCount + 1
 
 			}
-			if debug {
+			if gs.debug {
 				fmt.Println("Roll Result: " + description)
 			}
 		}
 
 		// Special Chips
-		handleSpecialChips(&players, gs.book, debug)
+		handleSpecialChips(&gs.players, gs.book, gs.debug)
 
 		// Rubies
-		handleRubies(players, debug)
+		handleRubies(gs.players, gs.debug)
 
 		// Victory Points
-		handleVictoryPoints(players, debug)
+		handleVictoryPoints(gs.players, gs.debug)
 
 		// Buy Chips
 
 		/// Spend Rubys
 
-		logPlayers(players)
+		logPlayers(gs.players)
 
-		if debug {
+		if gs.debug {
 			break
 		}
 
@@ -103,7 +105,33 @@ func PlayGame(playerNames []string, debug bool) GameState {
 		}
 	}
 
-	return gs
+}
+
+func drawFortune(gs GameState, fortuneDeck []Fortune, debug bool) {
+
+	fmt.Println(fortuneDeck)
+	gs.FSM.Event(context.Background(), "read_fortune")
+
+	fortuneDeck, fortune := pop(fortuneDeck)
+	if fortune.id == 2 {
+		gs.FSM.Event(context.Background(), GetHandleFortuneString())
+	}
+	fmt.Println("Fortune for the round: " + fortune.Ability)
+	if debug {
+		fmt.Println(fmt.Sprintf("Remaining Deck: %d", len(fortuneDeck)))
+	}
+}
+
+func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
+	// Handle Input
+	if fortune == 2 {
+		if input.Choice == 1 {
+			gs.players[input.Player].rubyCount = gs.players[input.Player].rubyCount + 1
+		} else if input.Choice == 2 {
+			gs.players[input.Player].score = gs.players[input.Player].score + 1
+		}
+	}
+	return
 
 }
 

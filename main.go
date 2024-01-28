@@ -6,6 +6,8 @@ import (
 
 func main() {
 
-	q.PlayGame([]string{"Nathan", "Leah", "Raymond", "Hannah"}, true)
+	gs := q.CreateGameState([]string{"Nathan", "Leah", "Raymond", "Hannah"}, true)
+
+	gs.StartGame()
 
 }
