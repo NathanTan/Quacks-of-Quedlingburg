@@ -80,20 +80,20 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 	}
 
 	gs.FSM = fsm.NewFSM(
-		"closed",
+		ClosedState.String(),
 		fsm.Events{
-			{Name: Start.String(), Src: []string{"closed"}, Dst: "fortune"},
-			{Name: ReadFortune.String(), Src: []string{"fortune"}, Dst: "fortune_input"},
-			{Name: HandleFortune.String(), Src: []string{"fortune_input"}, Dst: "fortune"},
-			{Name: AssignRatTails.String(), Src: []string{"fortune"}, Dst: "rat_tails"},
-			{Name: BeginPreparation.String(), Src: []string{"rat_tails"}, Dst: "preparation"},
-			{Name: PreparationInput.String(), Src: []string{"preparation"}, Dst: "preparation_input"},
-			{Name: HandlePreparationInput.String(), Src: []string{"preparation_input"}, Dst: "preparation"},
-			{Name: EnterScoring.String(), Src: []string{"preparation"}, Dst: "scoring"},
-			{Name: ScoringInput.String(), Src: []string{"scoring"}, Dst: "scoring_input"},
-			{Name: HandleScoringInput.String(), Src: []string{"scoring_input"}, Dst: "scoring"},
-			{Name: EnterNextRound.String(), Src: []string{"scoring"}, Dst: "fortune"},
-			{Name: End.String(), Src: []string{"scoring"}, Dst: "end"},
+			{Name: Start.String(), Src: []string{ClosedState.String()}, Dst: FortuneState.String()},
+			{Name: ReadFortune.String(), Src: []string{FortuneState.String()}, Dst: FortuneInputState.String()},
+			{Name: HandleFortune.String(), Src: []string{FortuneInputState.String()}, Dst: FortuneState.String()},
+			{Name: AssignRatTails.String(), Src: []string{FortuneState.String()}, Dst: RatTailsState.String()},
+			{Name: BeginPreparation.String(), Src: []string{RatTailsState.String()}, Dst: PreparationState.String()},
+			{Name: PreparationInput.String(), Src: []string{PreparationState.String()}, Dst: PreparationInputState.String()},
+			{Name: HandlePreparationInput.String(), Src: []string{PreparationInputState.String()}, Dst: PreparationState.String()},
+			{Name: EnterScoring.String(), Src: []string{PreparationState.String()}, Dst: ScoringState.String()},
+			{Name: ScoringInput.String(), Src: []string{ScoringState.String()}, Dst: ScoringInputState.String()},
+			{Name: HandleScoringInput.String(), Src: []string{ScoringInputState.String()}, Dst: ScoringState.String()},
+			{Name: EnterNextRound.String(), Src: []string{ScoringState.String()}, Dst: FortuneState.String()},
+			{Name: End.String(), Src: []string{ScoringState.String()}, Dst: End.String()},
 		},
 		fsm.Callbacks{
 			"enter_state":   func(_ context.Context, e *fsm.Event) { gs.enterState(e) },
@@ -114,7 +114,46 @@ func GameIsOver(gs GameState) bool {
 type State int
 
 const (
-	Start State = iota
+	ClosedState State = iota
+	FortuneState
+	FortuneInputState
+	RatTailsState
+	PreparationState
+	PreparationInputState
+	ScoringState
+	ScoringInputState
+	EndState
+)
+
+func (s State) String() string {
+	switch s {
+	case ClosedState:
+		return "closed"
+	case FortuneState:
+		return "fortuen"
+	case FortuneInputState:
+		return "fortune_input"
+	case RatTailsState:
+		return "rat_tails"
+	case PreparationState:
+		return "preparation"
+	case PreparationInputState:
+		return "preparation_input"
+	case ScoringState:
+		return "scoring"
+	case ScoringInputState:
+		return "scoring_input"
+	case EndState:
+		return "end"
+	default:
+		return "unknown"
+	}
+}
+
+type Transition int
+
+const (
+	Start Transition = iota
 	ReadFortune
 	HandleFortune
 	AssignRatTails
@@ -128,7 +167,7 @@ const (
 	End
 )
 
-func (s State) String() string {
+func (s Transition) String() string {
 	switch s {
 	case Start:
 		return "start"

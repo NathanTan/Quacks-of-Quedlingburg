@@ -6,6 +6,7 @@ type Board struct {
 	chips            []Chip
 	nextPosition     int
 	testTubePosition int
+	cherryBombValue  int
 }
 
 type Slot struct {
@@ -66,4 +67,15 @@ func (b Board) toString() string {
 		s += fmt.Sprintf("%s %d, ", c.color, c.value)
 	}
 	return s
+}
+
+func (b *Board) placeChip(chip Chip) {
+	if chip.color == White.String() {
+		b.cherryBombValue = b.cherryBombValue + chip.value
+	}
+	b.chips = append(b.chips, chip)
+}
+
+func (b Board) getCherryBombValue() int {
+	return b.cherryBombValue
 }

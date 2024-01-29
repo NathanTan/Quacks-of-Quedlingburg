@@ -35,22 +35,9 @@ func (gs GameState) ResumePlay() {
 	for i := range gs.players {
 		player := &gs.players[i]
 
-		if len(player.bag.Chips) > 0 {
+		if len(player.bag.Chips) > 0 && player.board.getCherryBombValue() <= 7 {
 			chip := DrawChip(&(player.bag), gs.debug)
-			player.board.chips = append(player.board.chips, chip)
-			if gs.debug {
-				fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
-				fmt.Printf("Pot: %s\n", player.board.toString())
-			}
-		}
-	}
-	// Pull a 2nd Chip
-	for i := range gs.players {
-		player := &gs.players[i]
-
-		if len(player.bag.Chips) > 0 {
-			chip := DrawChip(&(player.bag), gs.debug)
-			player.board.chips = append(player.board.chips, chip)
+			player.board.placeChip(chip)
 			if gs.debug {
 				fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
 				fmt.Printf("Pot: %s\n", player.board.toString())
