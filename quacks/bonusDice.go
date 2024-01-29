@@ -13,6 +13,7 @@ func BonusDiceRoll() (int, string) {
 	case 1:
 		return 1, "Collect A Pumpkin Chip"
 	case 2:
+		return 2, "1 Victory Point"
 	case 3:
 		return 2, "1 Victory Point"
 	case 4:

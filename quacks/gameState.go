@@ -3,6 +3,7 @@ package quacks
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/looplab/fsm"
 )
@@ -14,14 +15,22 @@ type Input struct {
 }
 
 type GameState struct {
-	players  []Player
-	turn     int
-	fortune  int
-	winner   int
-	book     int
-	awaiting *Input
-	debug    bool
-	FSM      *fsm.FSM
+	players     []Player
+	round       int
+	fortune     int
+	winner      int
+	book        int
+	awaiting    *Input
+	debug       bool
+	FSM         *fsm.FSM
+	fortuneDeck []Fortune
+}
+
+func (gs *GameState) GameIsOver() bool {
+	if gs.winner > 0 {
+		return true
+	}
+	return false
 }
 
 func (gs *GameState) enterState(e *fsm.Event) {
@@ -30,6 +39,29 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		fmt.Println("State Transition -> -> -> ")
 		fmt.Printf("Entering %s from %s\n\n", e.Dst, e.Src)
 	}
+}
+
+func (gs *GameState) nextRound(e *fsm.Event) {
+	if gs.round == 9 {
+		gs.winner = 100
+		// Assign winner here
+		return
+	}
+
+	gs.round = gs.round + 1
+}
+
+func (gs *GameState) GetPlayersByScore() []string {
+	sort.Slice(gs.players, func(i, j int) bool {
+		return gs.players[i].score > gs.players[j].score
+	})
+
+	playerNames := make([]string, len(gs.players))
+	for i, player := range gs.players {
+		playerNames[i] = player.name
+	}
+
+	return playerNames
 }
 
 func CreateGameState(playerNames []string, debug bool) *GameState {
@@ -43,6 +75,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 		1,
 		nil,
 		debug,
+		nil,
 		nil,
 	}
 
@@ -63,7 +96,8 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 			{Name: End.String(), Src: []string{"scoring"}, Dst: "end"},
 		},
 		fsm.Callbacks{
-			"enter_state": func(_ context.Context, e *fsm.Event) { gs.enterState(e) },
+			"enter_state":   func(_ context.Context, e *fsm.Event) { gs.enterState(e) },
+			"leave_scoring": func(_ context.Context, e *fsm.Event) { gs.nextRound(e) },
 		},
 	)
 
@@ -75,10 +109,6 @@ func GameIsOver(gs GameState) bool {
 		return true
 	}
 	return false
-}
-
-func GetHandleFortuneString() string {
-	return "handle_fortune"
 }
 
 type State int

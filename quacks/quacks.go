@@ -9,116 +9,143 @@ func (gs GameState) Input(input Input) {
 	if gs.FSM.Current() == HandleFortune.String() {
 		handleFortune(&gs, input, gs.fortune, gs.debug)
 	}
-
 }
 
-func (gs GameState) StartGame() {
-	fortuneDeck := createFortunes()
-	gs.FSM.Event(context.Background(), "start")
-	for i := 1; i < 9; i++ {
-		fmt.Println("Starting Round.")
+func (gs GameState) ResumePlay() {
 
-		// Fortune cards
-		drawFortune(gs, fortuneDeck, gs.debug)
+	// Fortune cards
+	if gs.FSM.Current() == ReadFortune.String() {
+		drawFortune(gs, gs.fortuneDeck, gs.debug)
+	}
+	// if gs.FSM.Current() == HandleFortune.String() {
+	// 	handleFortune(gs, gs.fortuneDeck, gs.debug)
+	// }
 
-		// Rat Tails
-		assignRatTails(gs.players, gs.debug)
+	// Rat Tails
+	assignRatTails(gs.players, gs.debug)
 
-		if gs.debug {
-			fmt.Println("Drawing Chips \n")
-		}
+	if gs.debug {
+		fmt.Println("Drawing Chips \n ")
+	}
 
-		// Shuffle Player's bags
-		shufflePlayersBags(&gs.players)
+	// Shuffle Player's bags
+	shufflePlayersBags(&gs.players)
 
-		// Pull Chips (1 chip for now)
-		for _, player := range gs.players {
-			if len(player.bag.Chips) > 0 {
-				chip := DrawChip(&(player.bag), gs.debug)
-				player.board.chips = append(player.board.chips, chip)
-				if gs.debug {
-					fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
-				}
-			}
-		}
+	// Pull Chips (1 chip for now)
+	for i := range gs.players {
+		player := &gs.players[i]
 
-		// Evaluation
-
-		// Bonus Dice
-		for i := 0; i < len(gs.players); i++ {
-
-			roll, description := BonusDiceRoll()
-			switch roll {
-
-			// Give a Pumpkin Chip
-			case 1:
-				AddChip(&gs.players[i].bag, NewChip("orange", 1))
-
-				// Add 1 to their score
-			case 2:
-				gs.players[i].score = gs.players[i].score + 1
-
-				// Add 2 to their score
-			case 4:
-				gs.players[i].score = gs.players[i].score + 2
-
-			case 5:
-				gs.players[i].dropplet = gs.players[i].dropplet + 1
-				// TODO: Add test tube dropplet here
-
-			case 6:
-				gs.players[i].rubyCount = gs.players[i].rubyCount + 1
-
-			}
+		if len(player.bag.Chips) > 0 {
+			chip := DrawChip(&(player.bag), gs.debug)
+			player.board.chips = append(player.board.chips, chip)
 			if gs.debug {
-				fmt.Println("Roll Result: " + description)
+				fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
+				fmt.Printf("Pot: %s\n", player.board.toString())
 			}
 		}
+	}
+	// Pull a 2nd Chip
+	for i := range gs.players {
+		player := &gs.players[i]
 
-		// Special Chips
-		handleSpecialChips(&gs.players, gs.book, gs.debug)
-
-		// Rubies
-		handleRubies(gs.players, gs.debug)
-
-		// Victory Points
-		handleVictoryPoints(gs.players, gs.debug)
-
-		// Buy Chips
-
-		/// Spend Rubys
-
-		logPlayers(gs.players)
-
-		if gs.debug {
-			break
-		}
-
-		// End the game after nine turns
-		if gs.turn > 9 {
-			break
-		}
-
-		// Game is over, maybe someone surrendered
-		if GameIsOver(gs) {
-			break
+		if len(player.bag.Chips) > 0 {
+			chip := DrawChip(&(player.bag), gs.debug)
+			player.board.chips = append(player.board.chips, chip)
+			if gs.debug {
+				fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
+				fmt.Printf("Pot: %s\n", player.board.toString())
+			}
 		}
 	}
 
+	// Evaluation
+
+	// Bonus Dice
+	for i := 0; i < len(gs.players); i++ {
+
+		roll, description := BonusDiceRoll()
+		switch roll {
+
+		// Give a Pumpkin Chip
+		case 1:
+			AddChip(&gs.players[i].bag, NewChip("orange", 1))
+
+			// Add 1 to their score
+		case 2:
+			gs.players[i].score = gs.players[i].score + 1
+
+			// Add 2 to their score
+		case 4:
+			gs.players[i].score = gs.players[i].score + 2
+
+		case 5:
+			gs.players[i].dropplet = gs.players[i].dropplet + 1
+			// TODO: Add test tube dropplet here
+
+		case 6:
+			gs.players[i].rubyCount = gs.players[i].rubyCount + 1
+
+		}
+		if gs.debug {
+			fmt.Println("Roll Result: " + description)
+		}
+	}
+
+	// Special Chips
+	handleSpecialChips(&gs.players, gs.book, gs.debug)
+
+	// Rubies
+	handleRubies(gs.players, gs.debug)
+
+	// Victory Points
+	handleVictoryPoints(gs.players, gs.debug)
+
+	// Buy Chips
+
+	/// Spend Rubys
+
+	logPlayers(gs.players)
+
+	// Game is over, maybe someone surrendered
+	if GameIsOver(gs) {
+		return
+	}
+}
+
+func (gs GameState) StartGame() {
+	gs.fortuneDeck = createFortunes()
+	gs.FSM.Event(context.Background(), "start")
+	// Fortune cards
+	drawFortune(gs, gs.fortuneDeck, gs.debug)
+
+	// If input is required, pause for the input
+	if gs.FSM.Current() == HandleFortune.String() {
+		return
+	}
+
+	// If no input is required, no rat tails are assigned since it's the first round
+	if gs.FSM.Current() == AssignRatTails.String() {
+		// No Rat Tails Assigned in the first round
+		// assignRatTails(gs.players, gs.debug)
+		gs.FSM.Event(context.Background(), BeginPreparation.String())
+	}
 }
 
 func drawFortune(gs GameState, fortuneDeck []Fortune, debug bool) {
 
 	fmt.Println(fortuneDeck)
-	gs.FSM.Event(context.Background(), "read_fortune")
+	gs.FSM.Event(context.Background(), ReadFortune.String())
 
 	fortuneDeck, fortune := pop(fortuneDeck)
 	if fortune.id == 2 {
-		gs.FSM.Event(context.Background(), GetHandleFortuneString())
+		gs.FSM.Event(context.Background(), HandleFortune.String())
 	}
 	fmt.Println("Fortune for the round: " + fortune.Ability)
 	if debug {
 		fmt.Println(fmt.Sprintf("Remaining Deck: %d", len(fortuneDeck)))
+	}
+	if gs.FSM.Current() != HandleFortune.String() {
+		gs.FSM.Event(context.Background(), AssignRatTails.String())
 	}
 }
 
@@ -260,13 +287,21 @@ func handleSpecialChips(players *[]Player, book int, debug bool) {
 		}
 	}
 
+	if debug {
+		fmt.Printf("player board: %s\n", (*players)[0].board.toString())
+		fmt.Printf("player board: %s\n", (*players)[1].board.toString())
+		fmt.Printf("player board: %s\n", (*players)[2].board.toString())
+		fmt.Printf("player board: %s\n", (*players)[3].board.toString())
+	}
+
 	if book == 1 {
-		for _, player := range *players {
+		for i := range *players {
+			player := (*players)[i]
 			// Handle Spiders
 			chips := player.board.chips
 
 			// If the last or second to last chip is a spider
-			if chips[len(chips)].color == "green" || chips[len(chips)-1].color == "green" {
+			if chips[len(chips)-1].color == Green.String() || chips[len(chips)-2].color == Green.String() {
 				// Give the player a ruby
 				player.rubyCount = player.rubyCount + 1
 			} else {

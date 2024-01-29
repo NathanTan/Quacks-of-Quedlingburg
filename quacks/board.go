@@ -1,5 +1,7 @@
 package quacks
 
+import "fmt"
+
 type Board struct {
 	chips            []Chip
 	nextPosition     int
@@ -56,4 +58,12 @@ func GetChipCount(board Board, _type string, debug bool) int {
 	}
 
 	return count
+}
+
+func (b Board) toString() string {
+	s := ""
+	for _, c := range b.chips {
+		s += fmt.Sprintf("%s %d, ", c.color, c.value)
+	}
+	return s
 }
