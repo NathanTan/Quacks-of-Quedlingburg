@@ -11,7 +11,10 @@ func (gs GameState) Input(input Input) {
 	}
 }
 
-func (gs GameState) ResumePlay() {
+func (gs *GameState) ResumePlay() {
+	if GameIsOver(*gs) {
+		return
+	}
 
 	// Fortune cards
 	if gs.FSM.Current() == ReadFortune.String() {
@@ -22,84 +25,133 @@ func (gs GameState) ResumePlay() {
 	// }
 
 	// Rat Tails
-	assignRatTails(gs.players, gs.debug)
+	if gs.FSM.Current() == RatTailsState.String() {
+		assignRatTails(gs.players, gs.debug)
+		gs.FSM.Event(context.Background(), BeginPreparation.String())
+	}
 
 	if gs.debug {
 		fmt.Println("Drawing Chips \n ")
 	}
 
-	// Shuffle Player's bags
-	shufflePlayersBags(&gs.players)
+	if gs.FSM.Current() == PreparationState.String() {
+		if gs.debug {
+			fmt.Println("In Prepration Phase")
+		}
+		// Shuffle Player's bags
+		shufflePlayersBags(&gs.players)
 
-	// Pull Chips (1 chip for now)
-	for i := range gs.players {
-		player := &gs.players[i]
+		// Pull Chips (1 chip for now)
+		for i := range gs.players {
+			player := &gs.players[i]
 
-		if len(player.bag.Chips) > 0 && player.board.getCherryBombValue() <= 7 {
-			chip := DrawChip(&(player.bag), gs.debug)
-			player.board.placeChip(chip)
-			if gs.debug {
-				fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
-				fmt.Printf("Pot: %s\n", player.board.toString())
+			if !player.IsDoneDrawing(7) {
+				chip := DrawChip(&(player.bag), gs.debug)
+				player.board.placeChip(chip)
+				if gs.debug {
+					fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
+					fmt.Printf("Pot: %s\n", player.board.toString())
+				}
 			}
+		}
+
+		// Make it so they check if they're done, and if so move to the next game state - TODO: Pick up here
+		playersAreDone := true
+		for i := range gs.players {
+			// if gs.debug {
+			// 	fmt.Printf("Player '%s' is done drawing chips - %t\n", gs.players[i].name, gs.players[i].IsDoneDrawing(gs.bombLimit))
+			// }
+			playersAreDone = playersAreDone && gs.players[i].IsDoneDrawing(gs.bombLimit)
+		}
+
+		if gs.debug {
+			fmt.Printf("playersAreDone: %t\n", playersAreDone)
+		}
+
+		if playersAreDone {
+			gs.FSM.Event(context.Background(), EnterScoring.String())
 		}
 	}
 
 	// Evaluation
 
-	// Bonus Dice
-	for i := 0; i < len(gs.players); i++ {
+	if gs.FSM.Current() == ScoringState.String() {
 
-		roll, description := BonusDiceRoll()
-		switch roll {
+		// Bonus Dice
+		for i := range gs.players {
+			// If the player exploaded, ask for VP or buying
+			if gs.players[i].board.cherryBombValue > gs.players[i].explosionLimit {
+				gs.awaiting = &Input{
+					Description: fmt.Sprintf("Player %s has exploded their pot, please select from the options:\n\t1: Buy Chips\n\t2: Gain Victory Points", gs.players[i].name),
+					Choice:      -1,
+					Player:      i,
+					Code:        getInputCodes()["VPOrBuying"],
+				}
+				gs.FSM.Event(context.Background(), HandleScoringInput.String())
 
-		// Give a Pumpkin Chip
-		case 1:
-			AddChip(&gs.players[i].bag, NewChip("orange", 1))
+			} else {
+				// Else roll the bonus dice
 
-			// Add 1 to their score
-		case 2:
-			gs.players[i].score = gs.players[i].score + 1
+				roll, description := BonusDiceRoll()
+				switch roll {
 
-			// Add 2 to their score
-		case 4:
-			gs.players[i].score = gs.players[i].score + 2
+				// Give a Pumpkin Chip
+				case 1:
+					AddChip(&gs.players[i].bag, NewChip(Orange.String(), 1))
 
-		case 5:
-			gs.players[i].dropplet = gs.players[i].dropplet + 1
-			// TODO: Add test tube dropplet here
+					// Add 1 to their score
+				case 2:
+					gs.players[i].score = gs.players[i].score + 1
 
-		case 6:
-			gs.players[i].rubyCount = gs.players[i].rubyCount + 1
+					// Add 2 to their score
+				case 4:
+					gs.players[i].score = gs.players[i].score + 2
 
+				case 5:
+					gs.players[i].dropplet = gs.players[i].dropplet + 1
+					// TODO: Add test tube dropplet here
+
+				case 6:
+					gs.players[i].rubyCount = gs.players[i].rubyCount + 1
+
+				}
+				if gs.debug {
+					fmt.Println("Roll Result: " + description)
+				}
+			}
 		}
-		if gs.debug {
-			fmt.Println("Roll Result: " + description)
+
+		// Special Chips
+		handleSpecialChips(&gs.players, gs.book, gs.debug)
+
+		// Rubies
+		handleRubies(gs.players, gs.debug)
+
+		// Victory Points
+		handleVictoryPoints(gs, gs.players, gs.debug)
+
+		// Buy Chips
+
+		// Spend Rubys
+
+		logPlayers(gs.players)
+
+	} else if gs.FSM.Current() == ScoringInputState.String() {
+		playerId := gs.awaiting.Player
+		switch gs.awaiting.Code {
+		case getInputCodes()["VPOrBuying"]:
+			if gs.awaiting.Choice == 1 {
+				gs.players[playerId].chooseBuying = true
+			} else {
+				gs.players[playerId].chooseVictoryPoints = true
+			}
 		}
-	}
 
-	// Special Chips
-	handleSpecialChips(&gs.players, gs.book, gs.debug)
-
-	// Rubies
-	handleRubies(gs.players, gs.debug)
-
-	// Victory Points
-	handleVictoryPoints(gs.players, gs.debug)
-
-	// Buy Chips
-
-	/// Spend Rubys
-
-	logPlayers(gs.players)
-
-	// Game is over, maybe someone surrendered
-	if GameIsOver(gs) {
-		return
+		gs.FSM.Event(context.Background(), HandleScoringInput.String())
 	}
 }
 
-func (gs GameState) StartGame() {
+func (gs *GameState) StartGame() {
 	gs.fortuneDeck = createFortunes()
 	gs.FSM.Event(context.Background(), "start")
 	// Fortune cards
@@ -118,7 +170,7 @@ func (gs GameState) StartGame() {
 	}
 }
 
-func drawFortune(gs GameState, fortuneDeck []Fortune, debug bool) {
+func drawFortune(gs *GameState, fortuneDeck []Fortune, debug bool) {
 
 	fmt.Println(fortuneDeck)
 	gs.FSM.Event(context.Background(), ReadFortune.String())
@@ -151,9 +203,6 @@ func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 
 func handleRubies(players []Player, debug bool) {
 	for i := 0; i < len(players); i++ {
-		if debug {
-			fmt.Println("DEBUG: Assigning Rubies")
-		}
 		rubyCount := AssignRubies(players[i].board)
 		if rubyCount {
 			players[i].rubyCount = players[i].rubyCount + 1
@@ -161,13 +210,16 @@ func handleRubies(players []Player, debug bool) {
 	}
 }
 
-func handleVictoryPoints(players []Player, debug bool) {
-	for i := 0; i < len(players); i++ {
-		if debug {
-			fmt.Println("DEBUG: Assigning VPs")
+func handleVictoryPoints(gs *GameState, players []Player, debug bool) {
+	for i := range players {
+		// If the pot didn't boil over or if it did and they chose scoring
+		if players[i].board.cherryBombValue <= players[i].explosionLimit || players[i].chooseVictoryPoints {
+			if debug {
+				fmt.Printf("DEBUG: Assigning VPs to '%s'\n", players[i].name)
+			}
+			_, victoryPointsEarned := GetScores(players[i].board)
+			players[i].score = players[i].score + victoryPointsEarned
 		}
-		_, victoryPointsEarned := GetScores(players[i].board)
-		players[i].score = players[i].score + victoryPointsEarned
 	}
 }
 
@@ -291,14 +343,10 @@ func handleSpecialChips(players *[]Player, book int, debug bool) {
 			if chips[len(chips)-1].color == Green.String() || chips[len(chips)-2].color == Green.String() {
 				// Give the player a ruby
 				player.rubyCount = player.rubyCount + 1
-			} else {
-				if debug {
-					fmt.Println("No Spider")
-				}
 			}
 
 			// Handle Ghosts
-			ghostCount := GetChipCount(player.board, "purple", debug)
+			ghostCount := GetChipCount(player.board, Purple.String(), debug)
 			if ghostCount == 1 {
 				player.score = player.score + 1
 			} else if ghostCount == 2 {

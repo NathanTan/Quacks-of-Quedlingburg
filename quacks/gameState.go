@@ -12,6 +12,7 @@ type Input struct {
 	Description string
 	Choice      int
 	Player      int
+	Code        int
 }
 
 type GameState struct {
@@ -20,6 +21,7 @@ type GameState struct {
 	fortune     int
 	winner      int
 	book        int
+	bombLimit   int
 	awaiting    *Input
 	debug       bool
 	FSM         *fsm.FSM
@@ -73,6 +75,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 		0,
 		0,
 		1,
+		7,
 		nil,
 		debug,
 		nil,
@@ -130,7 +133,7 @@ func (s State) String() string {
 	case ClosedState:
 		return "closed"
 	case FortuneState:
-		return "fortuen"
+		return "fortune"
 	case FortuneInputState:
 		return "fortune_input"
 	case RatTailsState:

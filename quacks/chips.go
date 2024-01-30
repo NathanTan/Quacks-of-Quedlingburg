@@ -12,7 +12,7 @@ func NewChip(color string, value int) Chip {
 type ChipType int
 
 const (
-	Oragne ChipType = iota
+	Orange ChipType = iota
 	Yellow
 	Blue
 	Red

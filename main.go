@@ -10,7 +10,7 @@ func main() {
 
 	gs.StartGame()
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 10; i++ {
 		gs.ResumePlay()
 		gs.Input(q.Input{Description: "", Choice: 1, Player: 1})
 		gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
