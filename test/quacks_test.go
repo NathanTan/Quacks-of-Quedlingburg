@@ -1,4 +1,4 @@
-package quacks_test
+package quacks
 
 import (
 	q "quacks"
@@ -33,4 +33,11 @@ func TestAddition(t *testing.T) {
 	if chip != q.NewChip("green", 1) {
 		t.Errorf("Error 4")
 	}
+}
+
+func TestRollDiceForPlayer(t *testing.T) {
+
+	player := q.CreateNewPlayer("test")
+
+	player.RollBonusDice(true)
 }

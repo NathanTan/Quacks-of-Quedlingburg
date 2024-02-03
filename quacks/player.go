@@ -18,6 +18,7 @@ type Player struct {
 	score               int
 	chooseVictoryPoints bool
 	chooseBuying        bool
+	buyingPower         int
 }
 
 func (player Player) IsDoneDrawing(bombLimit int) bool {
@@ -47,44 +48,55 @@ func PrintPlayerStatuses(player Player) {
 func setUpPlayers(names []string) []Player {
 	players := []Player{}
 	for i := 0; i < len(names); i++ {
-		players = append(players, Player{
-			names[i],
-			Bag{
-				Chips: []Chip{
-					NewChip("white", 1),
-					NewChip("white", 1),
-					NewChip("white", 1),
-					NewChip("white", 1),
-					NewChip("white", 2),
-					NewChip("white", 2),
-					NewChip("white", 3),
-					NewChip("green", 1),
-					NewChip("orange", 1),
-				},
-				RemainingChips: []Chip{
-					NewChip("white", 1),
-					NewChip("white", 1),
-					NewChip("white", 1),
-					NewChip("white", 1),
-					NewChip("white", 2),
-					NewChip("white", 2),
-					NewChip("white", 3),
-					NewChip("green", 1),
-					NewChip("orange", 1),
-				},
-			},
-			Board{},
-			false,
-			0,
-			0,
-			0,
-			0,
-			true,
-			7,
-			0,
-			false,
-			false})
+		players = append(players, CreateNewPlayer(names[i]))
 	}
 
 	return players
+}
+
+func CreateNewPlayer(name string) Player {
+	return Player{
+		name,
+		Bag{
+			Chips: []Chip{
+				NewChip("white", 1),
+				NewChip("white", 1),
+				NewChip("white", 1),
+				NewChip("white", 1),
+				NewChip("white", 2),
+				NewChip("white", 2),
+				NewChip("white", 3),
+				NewChip("green", 1),
+				NewChip("orange", 1),
+			},
+			RemainingChips: []Chip{
+				NewChip("white", 1),
+				NewChip("white", 1),
+				NewChip("white", 1),
+				NewChip("white", 1),
+				NewChip("white", 2),
+				NewChip("white", 2),
+				NewChip("white", 3),
+				NewChip("green", 1),
+				NewChip("orange", 1),
+			},
+		},
+		Board{
+			chips:            nil,
+			nextPosition:     -1,
+			testTubePosition: 0,
+			cherryBombValue:  0,
+		},
+		false,
+		0,
+		0,
+		0,
+		0,
+		true,
+		7,
+		0,
+		false,
+		false,
+		0,
+	}
 }

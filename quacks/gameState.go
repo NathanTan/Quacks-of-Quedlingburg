@@ -10,7 +10,9 @@ import (
 
 type Input struct {
 	Description string
+	Options     []string
 	Choice      int
+	Choice2     []Chip // todo refactor for buying chips
 	Player      int
 	Code        int
 }
@@ -51,6 +53,8 @@ func (gs *GameState) nextRound(e *fsm.Event) {
 	}
 
 	gs.round = gs.round + 1
+
+	fmt.Printf("===============\nStarting Round %d\n===============\n", gs.round)
 }
 
 func (gs *GameState) GetPlayersByScore() []string {
@@ -72,7 +76,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 	gs := &GameState{
 		players,
 		0,
-		0,
+		1,
 		0,
 		1,
 		7,
@@ -94,6 +98,9 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 			{Name: HandlePreparationInput.String(), Src: []string{PreparationInputState.String()}, Dst: PreparationState.String()},
 			{Name: EnterScoring.String(), Src: []string{PreparationState.String()}, Dst: ScoringState.String()},
 			{Name: ScoringInput.String(), Src: []string{ScoringState.String()}, Dst: ScoringInputState.String()},
+			{Name: EnterBuying.String(), Src: []string{ScoringState.String()}, Dst: BuyingState.String()},
+			{Name: HandleBuying.String(), Src: []string{BuyingState.String()}, Dst: BuyingInputState.String()},
+			{Name: LeaveBuying.String(), Src: []string{BuyingState.String()}, Dst: ScoringState.String()},
 			{Name: HandleScoringInput.String(), Src: []string{ScoringInputState.String()}, Dst: ScoringState.String()},
 			{Name: EnterNextRound.String(), Src: []string{ScoringState.String()}, Dst: FortuneState.String()},
 			{Name: End.String(), Src: []string{ScoringState.String()}, Dst: End.String()},
@@ -125,6 +132,8 @@ const (
 	PreparationInputState
 	ScoringState
 	ScoringInputState
+	BuyingState
+	BuyingInputState
 	EndState
 )
 
@@ -146,6 +155,10 @@ func (s State) String() string {
 		return "scoring"
 	case ScoringInputState:
 		return "scoring_input"
+	case BuyingState:
+		return "buying_state"
+	case BuyingInputState:
+		return "buying_input_state"
 	case EndState:
 		return "end"
 	default:
@@ -166,6 +179,9 @@ const (
 	EnterScoring
 	ScoringInput
 	HandleScoringInput
+	EnterBuying
+	HandleBuying
+	LeaveBuying
 	EnterNextRound
 	End
 )
@@ -192,6 +208,12 @@ func (s Transition) String() string {
 		return "scoring_input"
 	case HandleScoringInput:
 		return "handle_scoring_input"
+	case EnterBuying:
+		return "enter_buying"
+	case HandleBuying:
+		return "handle_buying"
+	case LeaveBuying:
+		return "leave_buying"
 	case EnterNextRound:
 		return "enter_next_round"
 	case End:

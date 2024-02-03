@@ -1,4 +1,4 @@
-package quacks_test
+package quacks
 
 import (
 	"fmt"

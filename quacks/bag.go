@@ -10,7 +10,7 @@ type Bag struct {
 	RemainingChips []Chip
 }
 
-func AddChip(bag *Bag, chip Chip) {
+func (bag *Bag) AddChip(chip Chip) {
 	bag.Chips = append(bag.Chips, chip)
 }
 

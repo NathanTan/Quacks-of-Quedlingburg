@@ -30,16 +30,19 @@ func (gs *GameState) ResumePlay() {
 		gs.FSM.Event(context.Background(), BeginPreparation.String())
 	}
 
-	if gs.debug {
-		fmt.Println("Drawing Chips \n ")
-	}
-
 	if gs.FSM.Current() == PreparationState.String() {
 		if gs.debug {
 			fmt.Println("In Prepration Phase")
 		}
 		// Shuffle Player's bags
 		shufflePlayersBags(&gs.players)
+
+		// Reset the player's board before assigning chips begins
+		for i := range gs.players {
+			if gs.players[i].board.nextPosition == -1 {
+				gs.players[i].board.nextPosition = 0
+			}
+		}
 
 		// Pull Chips (1 chip for now)
 		for i := range gs.players {
@@ -90,34 +93,7 @@ func (gs *GameState) ResumePlay() {
 				gs.FSM.Event(context.Background(), HandleScoringInput.String())
 
 			} else {
-				// Else roll the bonus dice
-
-				roll, description := BonusDiceRoll()
-				switch roll {
-
-				// Give a Pumpkin Chip
-				case 1:
-					AddChip(&gs.players[i].bag, NewChip(Orange.String(), 1))
-
-					// Add 1 to their score
-				case 2:
-					gs.players[i].score = gs.players[i].score + 1
-
-					// Add 2 to their score
-				case 4:
-					gs.players[i].score = gs.players[i].score + 2
-
-				case 5:
-					gs.players[i].dropplet = gs.players[i].dropplet + 1
-					// TODO: Add test tube dropplet here
-
-				case 6:
-					gs.players[i].rubyCount = gs.players[i].rubyCount + 1
-
-				}
-				if gs.debug {
-					fmt.Println("Roll Result: " + description)
-				}
+				gs.players[i].RollBonusDice(gs.debug)
 			}
 		}
 
@@ -131,7 +107,8 @@ func (gs *GameState) ResumePlay() {
 		handleVictoryPoints(gs, gs.players, gs.debug)
 
 		// Buy Chips
-
+		gs.FSM.Event(context.Background(), EnterBuying.String())
+		gs.awaiting = nil
 		// Spend Rubys
 
 		logPlayers(gs.players)
@@ -148,6 +125,59 @@ func (gs *GameState) ResumePlay() {
 		}
 
 		gs.FSM.Event(context.Background(), HandleScoringInput.String())
+	}
+
+	if gs.FSM.Current() == BuyingState.String() {
+		if gs.awaiting == nil {
+			gs.awaiting = &Input{
+				"Please select a chip to buy",
+				ListAvailableChips(gs.round),
+				0,
+				nil,
+				1,
+				0,
+			}
+		} else if gs.awaiting.Player < len(gs.players) {
+			nextPlayer := gs.awaiting.Player + 1
+			gs.awaiting = &Input{
+				"Please select a chip to buy",
+				ListAvailableChips(gs.round),
+				0,
+				nil,
+				nextPlayer,
+				0,
+			}
+		} else {
+			// We are done getting input
+
+		}
+		gs.FSM.Event(context.Background(), HandleBuying.String())
+	}
+
+	if gs.FSM.Current() == BuyingInputState.String() {
+		fmt.Println("here")
+		playerNumber := gs.awaiting.Player
+		buyingPower, _ := GetScores(gs.players[playerNumber].board)
+		gs.players[playerNumber].buyingPower = buyingPower
+
+		fmt.Printf("Buying power for %s - %d\n", gs.players[playerNumber].name, buyingPower)
+
+		chipsCostMap := GetChipsValueMap(gs.book)
+
+		totalCost := 0
+		for _, chip := range gs.awaiting.Choice2 {
+			totalCost += totalCost + chipsCostMap[chip.color+fmt.Sprintf("%d", chip.value)]
+		}
+
+		if totalCost <= buyingPower {
+			for _, chip := range gs.awaiting.Choice2 {
+				gs.players[playerNumber].bag.AddChip(chip)
+				if gs.debug {
+					fmt.Printf("Player '%s' bought a chip: %s", gs.players[playerNumber].name, chip.String())
+				}
+			}
+		}
+
 	}
 }
 
@@ -185,6 +215,37 @@ func drawFortune(gs *GameState, fortuneDeck []Fortune, debug bool) {
 	}
 	if gs.FSM.Current() != HandleFortune.String() {
 		gs.FSM.Event(context.Background(), AssignRatTails.String())
+	}
+}
+
+func (player *Player) RollBonusDice(debug bool) {
+	// Else roll the bonus dice
+
+	roll, description := BonusDiceRoll()
+	switch roll {
+
+	// Give a Pumpkin Chip
+	case 1:
+		player.bag.AddChip(NewChip(Orange.String(), 1))
+
+		// Add 1 to their score
+	case 2:
+		player.score = player.score + 1
+
+		// Add 2 to their score
+	case 4:
+		player.score = player.score + 2
+
+	case 5:
+		player.dropplet = player.dropplet + 1
+		// TODO: Add test tube dropplet here
+
+	case 6:
+		player.rubyCount = player.rubyCount + 1
+
+	}
+	if debug {
+		fmt.Println("Roll Result: " + description)
 	}
 }
 
