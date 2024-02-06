@@ -27,6 +27,8 @@ const (
 
 func (t ChipType) String() string {
 	switch t {
+	case Orange:
+		return "orange"
 	case Yellow:
 		return "yellow"
 	case Blue:
@@ -97,4 +99,12 @@ func GetChipsValueMap(book int) map[string]int {
 
 func (c Chip) String() string {
 	return fmt.Sprintf("%s_%d", c.color, c.value)
+}
+
+func ChipsString(chips []Chip) string {
+	s := ""
+	for _, chip := range chips {
+		s = fmt.Sprintf("%s, %s", s, chip.String())
+	}
+	return s
 }

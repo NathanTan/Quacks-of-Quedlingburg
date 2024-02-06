@@ -37,6 +37,14 @@ func (player Player) IsDoneDrawing(bombLimit int) bool {
 	return false
 }
 
+func (p Player) moveDropper(amount int, choice int) {
+	if choice == 1 {
+		p.dropplet = p.dropplet + amount
+	} else {
+		fmt.Println("TODO")
+	}
+}
+
 func PrintPlayerStatuses(player Player) {
 	fmt.Printf("Player '%s':\n", player.name)
 	fmt.Printf("\tScore - %d\n", player.score)

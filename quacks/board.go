@@ -54,7 +54,6 @@ func SetUpBoard(droppletPosition int, ratTailCount int) Board {
 // Buying Points and Victory Points.
 func GetScores(board Board) (int, int) {
 	standardBoard := getStandardBoard()
-	fmt.Printf("REMOVE - next %d\n", board.nextPosition)
 	buyingPoints := standardBoard[board.nextPosition].pointValue
 	victoryPoints := standardBoard[board.nextPosition].vpPointValue
 	return buyingPoints, victoryPoints

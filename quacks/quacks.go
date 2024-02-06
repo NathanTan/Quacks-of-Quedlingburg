@@ -5,10 +5,106 @@ import (
 	"fmt"
 )
 
-func (gs GameState) Input(input Input) {
+func (gs GameState) Input(input Input) Error {
 	if gs.FSM.Current() == HandleFortune.String() {
 		handleFortune(&gs, input, gs.fortune, gs.debug)
 	}
+
+	if gs.FSM.Current() == BuyingInputState.String() {
+		playerNumber := input.Player
+
+		// Quick validation to prevent buying 2 chips
+		if len(input.Choice2) == 2 && input.Choice2[0].color == input.Choice2[1].color {
+			return Error{
+				Description: "Error: Cannot buy 2 of the same type of chip",
+			}
+		} else if len(input.Choice2) > 2 {
+			return Error{
+				Description: "Error: Attempting to buy too many chip",
+			}
+		} else if gs.players[playerNumber].isDoneDrawing {
+			gs.FSM.Event(context.Background(), EnterBuying.String())
+			return Error{
+				Description: "Error: Player is already done buying chips",
+			}
+		}
+
+		buyingPower, _ := GetScores(gs.players[playerNumber].board)
+		gs.players[playerNumber].buyingPower = buyingPower
+
+		fmt.Printf("Buying power for %s - %d\n", gs.players[playerNumber].name, buyingPower)
+
+		chipsCostMap := GetChipsValueMap(gs.book)
+
+		if gs.debug {
+			fmt.Println("desired buy: " + ChipsString(input.Choice2))
+		}
+
+		totalCost := 0
+
+		for _, chip := range input.Choice2 {
+			totalCost += totalCost + chipsCostMap[chip.color+fmt.Sprintf("%d", chip.value)]
+		}
+
+		fmt.Printf("Total desired chip cost: %d\n", totalCost)
+
+		if totalCost <= buyingPower {
+			for _, chip := range input.Choice2 {
+				gs.players[playerNumber].bag.AddChip(chip)
+				if gs.debug {
+					fmt.Printf("Player '%s' bought a chip: %s\n", gs.players[playerNumber].name, chip.String())
+				}
+			}
+		}
+
+		gs.players[playerNumber].isDoneDrawing = true
+
+		playersAreDoneDrawing := true
+		for _, player := range gs.players {
+			playersAreDoneDrawing = playersAreDoneDrawing && player.isDoneDrawing
+		}
+
+		if playersAreDoneDrawing {
+			gs.FSM.Event(context.Background(), LeaveBuying.String())
+		} else {
+			gs.FSM.Event(context.Background(), EnterBuying.String())
+
+		}
+	}
+
+	if gs.FSM.Current() == RubySpendingInputState.String() {
+		playerNumber := gs.Awaiting.Player
+		// Finished buying for the last player
+		if playerNumber == len(gs.players) {
+			gs.Awaiting = nil
+			gs.FSM.Event(context.Background(), EnterNextRound.String())
+			return Error{}
+		}
+
+		player := gs.players[playerNumber]
+
+		// Spend the rubies
+		if player.rubyCount >= 2 {
+
+			fmt.Printf("Spending rubies for player %s\n", gs.players[playerNumber].name)
+
+			// Move the dropper
+			if input.Choice == 1 {
+				player.moveDropper(1, 1)
+				player.rubyCount = player.rubyCount - 2
+			} else if input.Choice == 2 {
+				if player.flask == false {
+					player.flask = true
+					player.rubyCount = player.rubyCount - 2
+				}
+			}
+		}
+		if player.rubyCount < 2 {
+			gs.FSM.Event(context.Background(), EnterRubySpending.String())
+		}
+	}
+
+	return Error{}
 }
 
 func (gs *GameState) ResumePlay() {
@@ -84,7 +180,7 @@ func (gs *GameState) ResumePlay() {
 		for i := range gs.players {
 			// If the player exploaded, ask for VP or buying
 			if gs.players[i].board.cherryBombValue > gs.players[i].explosionLimit {
-				gs.awaiting = &Input{
+				gs.Awaiting = &Input{
 					Description: fmt.Sprintf("Player %s has exploded their pot, please select from the options:\n\t1: Buy Chips\n\t2: Gain Victory Points", gs.players[i].name),
 					Choice:      -1,
 					Player:      i,
@@ -101,23 +197,23 @@ func (gs *GameState) ResumePlay() {
 		handleSpecialChips(&gs.players, gs.book, gs.debug)
 
 		// Rubies
-		handleRubies(gs.players, gs.debug)
+		handleRubies(&gs.players, gs.debug)
 
 		// Victory Points
-		handleVictoryPoints(gs, gs.players, gs.debug)
+		handleVictoryPoints(gs, gs.debug)
 
 		// Buy Chips
 		gs.FSM.Event(context.Background(), EnterBuying.String())
-		gs.awaiting = nil
+		gs.Awaiting = nil
 		// Spend Rubys
 
 		logPlayers(gs.players)
 
 	} else if gs.FSM.Current() == ScoringInputState.String() {
-		playerId := gs.awaiting.Player
-		switch gs.awaiting.Code {
+		playerId := gs.Awaiting.Player
+		switch gs.Awaiting.Code {
 		case getInputCodes()["VPOrBuying"]:
-			if gs.awaiting.Choice == 1 {
+			if gs.Awaiting.Choice == 1 {
 				gs.players[playerId].chooseBuying = true
 			} else {
 				gs.players[playerId].chooseVictoryPoints = true
@@ -128,18 +224,22 @@ func (gs *GameState) ResumePlay() {
 	}
 
 	if gs.FSM.Current() == BuyingState.String() {
-		if gs.awaiting == nil {
-			gs.awaiting = &Input{
+		if len(gs.GetRemainingBuyingPlayers()) == 0 {
+			gs.Awaiting = nil
+			gs.FSM.Event(context.Background(), EnterRubySpending.String())
+			return // TODO Refactor
+		} else if gs.Awaiting == nil {
+			gs.Awaiting = &Input{
 				"Please select a chip to buy",
 				ListAvailableChips(gs.round),
 				0,
 				nil,
-				1,
+				0,
 				0,
 			}
-		} else if gs.awaiting.Player < len(gs.players) {
-			nextPlayer := gs.awaiting.Player + 1
-			gs.awaiting = &Input{
+		} else if gs.Awaiting.Player < len(gs.players) {
+			nextPlayer := gs.Awaiting.Player + 1
+			gs.Awaiting = &Input{
 				"Please select a chip to buy",
 				ListAvailableChips(gs.round),
 				0,
@@ -147,38 +247,50 @@ func (gs *GameState) ResumePlay() {
 				nextPlayer,
 				0,
 			}
-		} else {
-			// We are done getting input
-
 		}
 		gs.FSM.Event(context.Background(), HandleBuying.String())
 	}
 
-	if gs.FSM.Current() == BuyingInputState.String() {
-		fmt.Println("here")
-		playerNumber := gs.awaiting.Player
-		buyingPower, _ := GetScores(gs.players[playerNumber].board)
-		gs.players[playerNumber].buyingPower = buyingPower
+	if gs.FSM.Current() == RubySpendingState.String() {
+		stateMessage := "Please select 1 for spending Rubies on the dropper or 2 for refilling your flask"
 
-		fmt.Printf("Buying power for %s - %d\n", gs.players[playerNumber].name, buyingPower)
-
-		chipsCostMap := GetChipsValueMap(gs.book)
-
-		totalCost := 0
-		for _, chip := range gs.awaiting.Choice2 {
-			totalCost += totalCost + chipsCostMap[chip.color+fmt.Sprintf("%d", chip.value)]
+		if gs.Awaiting != nil && gs.debug {
+			fmt.Printf("Awaiting on Player '%d', len:%d\n", gs.Awaiting.Player, len(gs.players))
 		}
 
-		if totalCost <= buyingPower {
-			for _, chip := range gs.awaiting.Choice2 {
-				gs.players[playerNumber].bag.AddChip(chip)
-				if gs.debug {
-					fmt.Printf("Player '%s' bought a chip: %s", gs.players[playerNumber].name, chip.String())
-				}
+		// Finished buying for the last player
+		if gs.Awaiting != nil && gs.Awaiting.Player == len(gs.players) {
+			fmt.Println("HIT")
+			gs.Awaiting = nil
+			gs.FSM.Event(context.Background(), EnterNextRound.String())
+			return
+		}
+
+		// Set Awaiting
+		if gs.Awaiting == nil {
+			gs.Awaiting = &Input{
+				stateMessage,
+				ListAvailableChips(gs.round),
+				0,
+				nil,
+				0,
+				0,
+			}
+		} else if gs.Awaiting.Player < len(gs.players) {
+			nextPlayer := gs.Awaiting.Player + 1
+			gs.Awaiting = &Input{
+				stateMessage,
+				ListAvailableChips(gs.round),
+				0,
+				nil,
+				nextPlayer,
+				0,
 			}
 		}
 
+		gs.FSM.Event(context.Background(), HandleRubySpending.String())
 	}
+
 }
 
 func (gs *GameState) StartGame() {
@@ -198,6 +310,19 @@ func (gs *GameState) StartGame() {
 		// assignRatTails(gs.players, gs.debug)
 		gs.FSM.Event(context.Background(), BeginPreparation.String())
 	}
+}
+
+func (gs GameState) GetRemainingBuyingPlayers() []string {
+	if gs.FSM.Current() == BuyingState.String() || gs.FSM.Current() == BuyingInputState.String() {
+		names := []string{}
+		for _, player := range gs.players {
+			if !player.isDoneDrawing {
+				names = append(names, player.name)
+			}
+		}
+		return names
+	}
+	return []string{}
 }
 
 func drawFortune(gs *GameState, fortuneDeck []Fortune, debug bool) {
@@ -262,16 +387,17 @@ func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 
 }
 
-func handleRubies(players []Player, debug bool) {
-	for i := 0; i < len(players); i++ {
-		rubyCount := AssignRubies(players[i].board)
+func handleRubies(players *[]Player, debug bool) {
+	for i := 0; i < len(*players); i++ {
+		rubyCount := AssignRubies((*players)[i].board)
 		if rubyCount {
-			players[i].rubyCount = players[i].rubyCount + 1
+			(*players)[i].rubyCount = (*players)[i].rubyCount + 1
 		}
 	}
 }
 
-func handleVictoryPoints(gs *GameState, players []Player, debug bool) {
+func handleVictoryPoints(gs *GameState, debug bool) {
+	players := gs.players
 	for i := range players {
 		// If the pot didn't boil over or if it did and they chose scoring
 		if players[i].board.cherryBombValue <= players[i].explosionLimit || players[i].chooseVictoryPoints {

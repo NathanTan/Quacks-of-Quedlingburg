@@ -24,7 +24,7 @@ type GameState struct {
 	winner      int
 	book        int
 	bombLimit   int
-	awaiting    *Input
+	Awaiting    *Input
 	debug       bool
 	FSM         *fsm.FSM
 	fortuneDeck []Fortune
@@ -43,6 +43,16 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		fmt.Println("State Transition -> -> -> ")
 		fmt.Printf("Entering %s from %s\n\n", e.Dst, e.Src)
 	}
+
+	// reset buying flag
+	if e.Dst == FortuneState.String() {
+		if gs.debug {
+			fmt.Println("Resetting buy flag for all players")
+		}
+		for _, player := range gs.players {
+			player.isDoneDrawing = false
+		}
+	}
 }
 
 func (gs *GameState) nextRound(e *fsm.Event) {
@@ -54,7 +64,12 @@ func (gs *GameState) nextRound(e *fsm.Event) {
 
 	gs.round = gs.round + 1
 
-	fmt.Printf("===============\nStarting Round %d\n===============\n", gs.round)
+	fmt.Printf("===============\nStarting Round %d\n---------------\n", gs.round)
+	scores := ""
+	for _, player := range gs.players {
+		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
+	}
+	fmt.Printf("Scores:\n%s\n===============\n", scores)
 }
 
 func (gs *GameState) GetPlayersByScore() []string {
@@ -98,11 +113,13 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 			{Name: HandlePreparationInput.String(), Src: []string{PreparationInputState.String()}, Dst: PreparationState.String()},
 			{Name: EnterScoring.String(), Src: []string{PreparationState.String()}, Dst: ScoringState.String()},
 			{Name: ScoringInput.String(), Src: []string{ScoringState.String()}, Dst: ScoringInputState.String()},
-			{Name: EnterBuying.String(), Src: []string{ScoringState.String()}, Dst: BuyingState.String()},
+			{Name: EnterBuying.String(), Src: []string{ScoringState.String(), BuyingInputState.String()}, Dst: BuyingState.String()},
 			{Name: HandleBuying.String(), Src: []string{BuyingState.String()}, Dst: BuyingInputState.String()},
-			{Name: LeaveBuying.String(), Src: []string{BuyingState.String()}, Dst: ScoringState.String()},
+			{Name: LeaveBuying.String(), Src: []string{BuyingState.String(), BuyingInputState.String()}, Dst: ScoringState.String()},
 			{Name: HandleScoringInput.String(), Src: []string{ScoringInputState.String()}, Dst: ScoringState.String()},
-			{Name: EnterNextRound.String(), Src: []string{ScoringState.String()}, Dst: FortuneState.String()},
+			{Name: EnterRubySpending.String(), Src: []string{BuyingState.String(), RubySpendingInputState.String()}, Dst: RubySpendingState.String()},
+			{Name: HandleRubySpending.String(), Src: []string{RubySpendingState.String()}, Dst: RubySpendingInputState.String()},
+			{Name: EnterNextRound.String(), Src: []string{RubySpendingState.String(), RubySpendingInputState.String()}, Dst: FortuneState.String()},
 			{Name: End.String(), Src: []string{ScoringState.String()}, Dst: End.String()},
 		},
 		fsm.Callbacks{
@@ -134,6 +151,8 @@ const (
 	ScoringInputState
 	BuyingState
 	BuyingInputState
+	RubySpendingState
+	RubySpendingInputState
 	EndState
 )
 
@@ -159,6 +178,10 @@ func (s State) String() string {
 		return "buying_state"
 	case BuyingInputState:
 		return "buying_input_state"
+	case RubySpendingState:
+		return "ruby_spending_state"
+	case RubySpendingInputState:
+		return "ruby_spending_input_state"
 	case EndState:
 		return "end"
 	default:
@@ -182,6 +205,8 @@ const (
 	EnterBuying
 	HandleBuying
 	LeaveBuying
+	EnterRubySpending
+	HandleRubySpending
 	EnterNextRound
 	End
 )
@@ -214,6 +239,10 @@ func (s Transition) String() string {
 		return "handle_buying"
 	case LeaveBuying:
 		return "leave_buying"
+	case EnterRubySpending:
+		return "enter_ruby_spending"
+	case HandleRubySpending:
+		return "handle_ruby_spending"
 	case EnterNextRound:
 		return "enter_next_round"
 	case End:
