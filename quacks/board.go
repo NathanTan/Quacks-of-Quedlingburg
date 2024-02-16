@@ -86,10 +86,13 @@ func (b Board) toString() string {
 
 func (b *Board) placeChip(chip Chip) {
 	if chip.color == White.String() {
+		fmt.Printf("Cherry Bomb value was %d\n", b.cherryBombValue)
 		b.cherryBombValue = b.cherryBombValue + chip.value
+		fmt.Printf("Cherry Bomb value is now %d\n", b.cherryBombValue)
 	}
 	b.chips = append(b.chips, chip)
 	b.nextPosition = b.nextPosition + 1
+
 }
 
 func (b Board) getCherryBombValue() int {

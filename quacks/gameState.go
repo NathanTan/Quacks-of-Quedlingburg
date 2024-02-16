@@ -13,25 +13,26 @@ type Input struct {
 	Options     []string
 	Choice      int
 	Choice2     []Chip // todo refactor for buying chips
-	Player      int
+	Player      int    // Player Position
 	Code        int
 }
 
 type GameState struct {
 	players     []Player
-	round       int
+	Round       int
 	fortune     int
-	winner      int
+	winner      []int
 	book        int
 	bombLimit   int
 	Awaiting    *Input
 	debug       bool
 	FSM         *fsm.FSM
 	fortuneDeck []Fortune
+	Stats       *Stats
 }
 
 func (gs *GameState) GameIsOver() bool {
-	if gs.winner > 0 {
+	if len(gs.winner) > 0 {
 		return true
 	}
 	return false
@@ -45,26 +46,62 @@ func (gs *GameState) enterState(e *fsm.Event) {
 	}
 
 	// reset buying flag
+	// Reset Cherry Bomb count
 	if e.Dst == FortuneState.String() {
 		if gs.debug {
 			fmt.Println("Resetting buy flag for all players")
 		}
 		for _, player := range gs.players {
 			player.isDoneDrawing = false
+			player.board.cherryBombValue = 0
 		}
 	}
 }
 
+func (gs GameState) PrintRound() {
+	fmt.Printf("===============\nRound %d\n---------------\n", gs.Round)
+	scores := ""
+	for _, player := range gs.players {
+		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
+	}
+	fmt.Printf("Scores:\n%s\n===============\n", scores)
+
+}
+
+// ByScore implements the sort.Interface for sorting players by score.
+type ByScore []Player
+
+func (p ByScore) Len() int           { return len(p) }
+func (p ByScore) Less(i, j int) bool { return p[i].score > p[j].score }
+func (p ByScore) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// GetTopPlayers returns a slice of players with the highest score.
+func GetTopPlayers(players []Player) []int {
+	sort.Sort(ByScore(players))
+	highestScore := players[0].score
+	var topPlayers []int
+
+	for i, player := range players {
+		if player.score == highestScore {
+			topPlayers = append(topPlayers, i)
+		} else {
+			break // Stop when we encounter a lower score
+		}
+	}
+
+	return topPlayers
+}
+
 func (gs *GameState) nextRound(e *fsm.Event) {
-	if gs.round == 9 {
-		gs.winner = 100
-		// Assign winner here
+	if gs.Round == 9 {
+		// Assign winners here
+		gs.winner = GetTopPlayers(gs.players)
 		return
 	}
 
-	gs.round = gs.round + 1
+	gs.Round = gs.Round + 1
 
-	fmt.Printf("===============\nStarting Round %d\n---------------\n", gs.round)
+	fmt.Printf("===============\nStarting Round %d\n---------------\n", gs.Round)
 	scores := ""
 	for _, player := range gs.players {
 		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
@@ -85,18 +122,28 @@ func (gs *GameState) GetPlayersByScore() []string {
 	return playerNames
 }
 
+func (gs GameState) GetPlayerNames() []string {
+	names := []string{}
+	for _, player := range gs.players {
+		names = append(names, player.name)
+	}
+	return names
+
+}
+
 func CreateGameState(playerNames []string, debug bool) *GameState {
 	players := setUpPlayers(playerNames)
 
 	gs := &GameState{
 		players,
-		0,
 		1,
-		0,
+		1,
+		[]int{},
 		1,
 		7,
 		nil,
 		debug,
+		nil,
 		nil,
 		nil,
 	}
@@ -132,7 +179,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 }
 
 func GameIsOver(gs GameState) bool {
-	if gs.winner > 0 {
+	if len(gs.winner) > 0 {
 		return true
 	}
 	return false

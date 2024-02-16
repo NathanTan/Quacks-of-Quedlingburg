@@ -10,6 +10,7 @@ func createFortunes() []Fortune {
 		{"Temp", 0},
 		{"Temp2", 1},
 		{"Get a ruby or +1 VP", 2},
+		{"Get a ruby or +1 VP", 2},
 	}
 }
 

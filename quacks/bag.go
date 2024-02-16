@@ -1,7 +1,6 @@
 package quacks
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -15,6 +14,9 @@ func (bag *Bag) AddChip(chip Chip) {
 }
 
 func DrawChip(bag *Bag, debug bool) Chip {
+	if len(bag.RemainingChips) == 0 {
+		return Chip{value: 0, color: ""}
+	}
 
 	slice := bag.RemainingChips
 	// rand.Seed(time.Now().UnixNano())
@@ -26,12 +28,20 @@ func DrawChip(bag *Bag, debug bool) Chip {
 
 	bag.RemainingChips = slice
 
+	bag.RemoveChip(lastElement)
+
 	return lastElement
 }
 
-func RemoveChip(bag Bag, chip Chip) {
-	// TODO: Implement
-	fmt.Println("Not Yet Implemented.")
+func (bag *Bag) RemoveChip(chip Chip) {
+	for i := 0; i < len(bag.RemainingChips); i++ {
+		if bag.RemainingChips[i].value == chip.value && bag.RemainingChips[i].color == chip.color {
+			// Remove the element at index i from people.
+			bag.RemainingChips = append(bag.RemainingChips[:i], bag.RemainingChips[i+1:]...)
+			i-- // Decrement i since we just removed an element.
+			break
+		}
+	}
 }
 
 func shufflePlayersBags(players *[]Player) {

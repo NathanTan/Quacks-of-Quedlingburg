@@ -6,16 +6,49 @@ import (
 )
 
 func main() {
+	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := q.CreateGameState([]string{"Nathan", "Leah", "Raymond", "Hannah"}, true)
+	gs := q.CreateGameState(playerNames, true)
 
 	gs.StartGame()
 
-	for i := 0; i < 100; i++ {
+	lastPlayerToPull := -1
+
+	for i := 0; i < 1000; i++ {
 		gs.ResumePlay()
 		fmt.Printf("Current state: %s ------------------------'\n", gs.FSM.Current())
 		if gs.FSM.Current() == q.End.String() {
 			fmt.Println("Game is over")
+
+		} else if gs.FSM.Current() == q.PreparationState.String() {
+
+			if len(gs.GetRemainingPullingPlayerNames()[0]) > 0 {
+				gs.DrawChip(gs.GetRemainingPullingPlayerNames()[0])
+			}
+
+		} else if gs.FSM.Current() == q.PreparationInputState.String() {
+			// Since we are waiting
+
+			lastPlayerToPull = (lastPlayerToPull + 1) % len(playerNames)
+
+			// fmt.Printf("nextPlayerToPull: %d\n", lastPlayerToPull)
+			if len(gs.GetRemainingPullingPlayerNames()) > 0 {
+				name := gs.GetRemainingPullingPlayerNames()[0]
+				fmt.Printf("nextPlayerToPull: %s, bombCount: %d\n", name, gs.GetPlayerBombCountByName(name))
+
+				var choice int
+				if gs.GetPlayerBombCountByName(name) >= 7 {
+					choice = 2
+				} else {
+					choice = 1
+				}
+
+				gs.Input(q.Input{
+					Description: gs.Awaiting.Description,
+					Choice:      choice,
+					Player:      gs.GetPlayerPosition(name),
+				})
+			}
 
 		} else if gs.FSM.Current() != q.BuyingInputState.String() && gs.FSM.Current() != q.RubySpendingInputState.String() {
 
@@ -23,6 +56,13 @@ func main() {
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 3})
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 4})
+
+		} else if gs.FSM.Current() == q.ScoringState.String() {
+			gs.Input(q.Input{Description: "", Choice: 0, Player: 1})
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 3})
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 4})
+
 		} else if gs.FSM.Current() == q.BuyingInputState.String() {
 			error := gs.Input(q.Input{Description: "", Choice: 0, Choice2: []q.Chip{q.NewChip(q.Orange.String(), 1)}, Player: 0})
 			gs.ResumePlay()
@@ -41,7 +81,7 @@ func main() {
 			gs.ResumePlay()
 
 			// for buying phase
-			fmt.Printf("Players that still need to buy: %s\n", gs.GetRemainingBuyingPlayers())
+			// fmt.Printf("Players that still need to buy: %s\n", gs.GetRemainingBuyingPlayers())
 		} else if gs.FSM.Current() == q.RubySpendingInputState.String() {
 			fmt.Printf("Awaiting on Player '%d' to '%s'\n", gs.Awaiting.Player, gs.Awaiting.Description)
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
@@ -57,8 +97,15 @@ func main() {
 			gs.ResumePlay()
 
 		}
+		if gs.Round > 1 {
+			fmt.Println("Round 1 over")
+			break
+		}
 		if gs.GameIsOver() {
+			fmt.Println("game is over")
 			break
 		}
 	}
+
+	gs.PrintRound()
 }

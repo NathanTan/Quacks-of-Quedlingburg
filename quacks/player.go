@@ -26,6 +26,8 @@ func (player Player) IsDoneDrawing(bombLimit int) bool {
 		return true
 	}
 
+	fmt.Printf("Player name: %s, CherryBombValue: %d, Limit: %d\n", player.name, player.board.cherryBombValue, bombLimit)
+
 	if player.board.cherryBombValue > bombLimit {
 		return true
 	}
@@ -50,6 +52,8 @@ func PrintPlayerStatuses(player Player) {
 	fmt.Printf("\tScore - %d\n", player.score)
 	fmt.Printf("\tCherry Bomb Count - %d\n", player.board.cherryBombValue)
 	fmt.Printf("\tRuby Count - %d\n", player.rubyCount)
+	fmt.Printf("\tOwned Chips - %s\n\n", ChipsString(player.bag.Chips))
+
 	fmt.Println(player)
 }
 
