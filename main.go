@@ -20,6 +20,28 @@ func main() {
 		if gs.FSM.Current() == q.End.String() {
 			fmt.Println("Game is over")
 
+		} else if gs.FSM.Current() == q.RubySpendingState.String() {
+			gs.ResumePlay()
+			fmt.Println(gs.Awaiting)
+			players := gs.GetPlayerPositionsWithRubies()
+			fmt.Printf("%d players left to spend rubies\n", len(players))
+			if len(players) > 0 {
+				e := gs.Input(q.Input{
+					Description: "",
+					Options:     []string{},
+					Choice:      1,
+					Choice2:     []q.Chip{},
+					Player:      0,
+					Code:        -1,
+				})
+
+				fmt.Printf("error: %s\n", e.Description)
+			} else {
+				gs.EndRubyBuys()
+
+			}
+			gs.ResumePlay()
+
 		} else if gs.FSM.Current() == q.PreparationState.String() {
 
 			if len(gs.GetRemainingPullingPlayerNames()[0]) > 0 {
@@ -82,6 +104,7 @@ func main() {
 
 			// for buying phase
 			// fmt.Printf("Players that still need to buy: %s\n", gs.GetRemainingBuyingPlayers())
+
 		} else if gs.FSM.Current() == q.RubySpendingInputState.String() {
 			fmt.Printf("Awaiting on Player '%d' to '%s'\n", gs.Awaiting.Player, gs.Awaiting.Description)
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
@@ -97,10 +120,7 @@ func main() {
 			gs.ResumePlay()
 
 		}
-		if gs.Round > 1 {
-			fmt.Println("Round 1 over")
-			break
-		}
+
 		if gs.GameIsOver() {
 			fmt.Println("game is over")
 			break

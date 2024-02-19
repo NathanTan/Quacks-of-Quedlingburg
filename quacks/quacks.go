@@ -122,6 +122,7 @@ func (gs *GameState) Input(input Input) Error {
 
 	if gs.FSM.Current() == RubySpendingInputState.String() {
 		playerNumber := gs.Awaiting.Player
+
 		// Finished buying for the last player
 		if playerNumber == len(gs.players) {
 			gs.Awaiting = nil
@@ -141,7 +142,7 @@ func (gs *GameState) Input(input Input) Error {
 				player.moveDropper(1, 1)
 				player.rubyCount = player.rubyCount - 2
 			} else if input.Choice == 2 {
-				if player.flask == false {
+				if !player.flask {
 					player.flask = true
 					player.rubyCount = player.rubyCount - 2
 				}
@@ -156,6 +157,23 @@ func (gs *GameState) Input(input Input) Error {
 	}
 
 	return Error{}
+}
+
+func (gs *GameState) GetPlayerPositionsWithRubies() []int {
+	pos := []int{}
+	for i, player := range gs.players {
+		if player.rubyCount >= 2 {
+			pos = append(pos, i)
+		}
+	}
+
+	return pos
+}
+
+func (gs *GameState) EndRubyBuys() {
+	if gs.FSM.Current() == RubySpendingState.String() {
+		gs.FSM.Event(context.Background(), EnterNextRound.String())
+	}
 }
 
 func (gs *GameState) ResumePlay() {
@@ -306,7 +324,6 @@ func (gs *GameState) ResumePlay() {
 
 		// Finished buying for the last player
 		if gs.Awaiting != nil && gs.Awaiting.Player == len(gs.players) {
-			fmt.Println("HIT")
 			gs.Awaiting = nil
 			gs.FSM.Event(context.Background(), EnterNextRound.String())
 			return
