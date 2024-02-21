@@ -5,20 +5,21 @@ import (
 )
 
 type Player struct {
-	name                string
-	bag                 Bag
-	board               Board
-	isDoneDrawing       bool
-	rubyCount           int
-	ratToken            int
-	dropplet            int
-	testTubeDropplet    int
-	flask               bool
-	explosionLimit      int
-	score               int
-	chooseVictoryPoints bool
-	chooseBuying        bool
-	buyingPower         int
+	name                   string
+	bag                    Bag
+	board                  Board
+	isDoneDrawing          bool
+	hasCompletedTheFortune bool // TODO: Implement so the game knows when all the players are done with the fortune
+	rubyCount              int
+	ratToken               int
+	dropplet               int
+	testTubeDropplet       int
+	flask                  bool
+	explosionLimit         int
+	score                  int
+	chooseVictoryPoints    bool
+	chooseBuying           bool
+	buyingPower            int
 }
 
 func (player Player) IsDoneDrawing(bombLimit int) bool {
@@ -99,6 +100,7 @@ func CreateNewPlayer(name string) Player {
 			testTubePosition: 0,
 			cherryBombValue:  0,
 		},
+		false,
 		false,
 		0,
 		0,

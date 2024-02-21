@@ -37,6 +37,10 @@ func (gs *GameState) Input(input Input) Error {
 	if gs.FSM.Current() == HandleFortune.String() {
 		handleFortune(gs, input, gs.fortune, gs.debug)
 	}
+	if gs.FSM.Current() == FortuneInputState.String() {
+		handleFortune(gs, input, gs.fortune, gs.debug)
+		gs.FSM.Event(context.Background(), HandleFortune.String())
+	}
 
 	if gs.FSM.Current() == PreparationInputState.String() {
 		// if gs.debug {
@@ -177,7 +181,7 @@ func (gs *GameState) EndRubyBuys() {
 }
 
 func (gs *GameState) ResumePlay() {
-	if GameIsOver(*gs) {
+	if gs.GameIsOver() {
 		return
 	}
 
@@ -185,9 +189,6 @@ func (gs *GameState) ResumePlay() {
 	if gs.FSM.Current() == FortuneState.String() {
 		drawFortune(gs, gs.fortuneDeck, gs.debug)
 	}
-	// if gs.FSM.Current() == HandleFortune.String() {
-	// 	handleFortune(gs, gs.fortuneDeck, gs.debug)
-	// }
 
 	// Rat Tails
 	if gs.FSM.Current() == RatTailsState.String() {
@@ -377,12 +378,12 @@ func pullAndPlaceChip(player *Player, debug bool) {
 }
 
 func (gs *GameState) StartGame() {
-	gs.fortuneDeck = createFortunes()
-	gs.FSM.Event(context.Background(), "start")
+	gs.FSM.Event(context.Background(), Start.String())
 	// Fortune cards
 	drawFortune(gs, gs.fortuneDeck, gs.debug)
 
 	// If input is required, pause for the input
+	// TODO: Fix
 	if gs.FSM.Current() == HandleFortune.String() {
 		return
 	}
@@ -454,18 +455,22 @@ func (gs GameState) GetPlayerByName(name string) Player {
 
 func drawFortune(gs *GameState, fortuneDeck []Fortune, debug bool) {
 
-	fmt.Println(fortuneDeck)
-	gs.FSM.Event(context.Background(), ReadFortune.String())
+	// gs.FSM.Event(context.Background(), ReadFortune.String())
+	fmt.Println(gs.fortuneDeck)
 
 	fortuneDeck, fortune := pop(fortuneDeck)
+	fmt.Printf("FortuneId: %d", fortune.id)
+	gs.fortune = fortune.id
 	if fortune.id == 2 {
-		gs.FSM.Event(context.Background(), HandleFortune.String())
+		gs.FSM.Event(context.Background(), ReadFortune.String())
+	} else if fortune.id == 3 {
+		gs.FSM.Event(context.Background(), ReadFortune.String())
 	}
-	fmt.Println("Fortune for the round: " + fortune.Ability)
 	if debug {
-		fmt.Println(fmt.Sprintf("Remaining Deck: %d", len(fortuneDeck)))
+		fmt.Println("Fortune for the round: " + fortune.Ability)
+		fmt.Printf("Remaining Deck: %d\n", len(fortuneDeck))
 	}
-	if gs.FSM.Current() != HandleFortune.String() {
+	if gs.FSM.Current() != FortuneInputState.String() {
 		gs.FSM.Event(context.Background(), AssignRatTails.String())
 	}
 }
@@ -503,14 +508,22 @@ func (player *Player) RollBonusDice(debug bool) {
 
 func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 	// Handle Input
+	fmt.Println("Hit!")
+	fmt.Printf("Fortune: %d, choice: %d\n", fortune, input.Choice)
+
 	if fortune == 2 {
 		if input.Choice == 1 {
 			gs.players[input.Player].rubyCount = gs.players[input.Player].rubyCount + 1
 		} else if input.Choice == 2 {
 			gs.players[input.Player].score = gs.players[input.Player].score + 1
 		}
+	} else if fortune == 3 {
+		for _, player := range gs.players {
+			player.RollBonusDice(gs.debug)
+		}
+	} else {
+		fmt.Printf("========================\nFORTUNE NOT HANDLED YET - id: %d \n========================", fortune)
 	}
-	return
 
 }
 

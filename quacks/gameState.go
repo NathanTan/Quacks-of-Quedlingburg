@@ -32,10 +32,7 @@ type GameState struct {
 }
 
 func (gs *GameState) GameIsOver() bool {
-	if len(gs.winner) > 0 {
-		return true
-	}
-	return false
+	return len(gs.winner) > 0
 }
 
 func (gs *GameState) enterState(e *fsm.Event) {
@@ -128,7 +125,6 @@ func (gs GameState) GetPlayerNames() []string {
 		names = append(names, player.name)
 	}
 	return names
-
 }
 
 func CreateGameState(playerNames []string, debug bool) *GameState {
@@ -144,7 +140,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 		nil,
 		debug,
 		nil,
-		nil,
+		createFortunes(),
 		nil,
 	}
 
@@ -176,13 +172,6 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 	)
 
 	return gs
-}
-
-func GameIsOver(gs GameState) bool {
-	if len(gs.winner) > 0 {
-		return true
-	}
-	return false
 }
 
 type State int

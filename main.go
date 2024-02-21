@@ -14,7 +14,7 @@ func main() {
 
 	lastPlayerToPull := -1
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10; i++ {
 		gs.ResumePlay()
 		fmt.Printf("Current state: %s ------------------------'\n", gs.FSM.Current())
 		if gs.FSM.Current() == q.End.String() {
@@ -71,13 +71,27 @@ func main() {
 					Player:      gs.GetPlayerPosition(name),
 				})
 			}
+		} else if gs.FSM.Current() == q.FortuneInputState.String() {
+
+			fmt.Println("Hit")
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
+			gs.ResumePlay()
+
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 1})
+			gs.ResumePlay()
+
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
+			gs.ResumePlay()
+
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 3})
+			gs.ResumePlay()
 
 		} else if gs.FSM.Current() != q.BuyingInputState.String() && gs.FSM.Current() != q.RubySpendingInputState.String() {
 
+			gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 1})
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 3})
-			gs.Input(q.Input{Description: "", Choice: 1, Player: 4})
 
 		} else if gs.FSM.Current() == q.ScoringState.String() {
 			gs.Input(q.Input{Description: "", Choice: 0, Player: 1})
