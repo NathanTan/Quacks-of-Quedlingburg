@@ -6,6 +6,27 @@ import (
 	"testing"
 )
 
+func TestRatTailCount(t *testing.T) {
+
+	res := countRatTails(1, 10)
+
+	if res != 3 {
+		t.Errorf("Incorrect rat tail count: %d", res)
+	}
+
+	res2 := countRatTails(2, 10)
+
+	if res2 != 2 {
+		t.Errorf("Incorrect rat tail count: %d", res)
+	}
+
+	res3 := countRatTails(100, 10)
+
+	if res3 != 0 {
+		t.Errorf("Incorrect rat tail count: %d", res)
+	}
+}
+
 func TestAddition(t *testing.T) {
 
 	bag := Bag{

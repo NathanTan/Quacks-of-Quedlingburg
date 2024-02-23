@@ -44,6 +44,17 @@ func (bag *Bag) RemoveChip(chip Chip) {
 	}
 }
 
+func (bag *Bag) DeleteChip(chip Chip) {
+	for i := 0; i < len(bag.Chips); i++ {
+		if bag.Chips[i].value == chip.value && bag.Chips[i].color == chip.color {
+			// Remove the element at index i from people.
+			bag.Chips = append(bag.Chips[:i], bag.Chips[i+1:]...)
+			i-- // Decrement i since we just removed an element.
+			break
+		}
+	}
+}
+
 func shufflePlayersBags(players *[]Player) {
 	for _, player := range *players {
 		shufflePlayersBag(&player)

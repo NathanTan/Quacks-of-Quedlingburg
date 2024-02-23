@@ -10,7 +10,9 @@ func createFortunes() []Fortune {
 		{"Temp", 0},
 		{"Temp2", 1},
 		{"Get a ruby or +1 VP", 2},
-		{"Get a ruby or +1 VP", 2},
+		{"Get a ruby or +1 VP", 3},
+		{"Double the number of rat tails this round.", 4},
+		{"Choose: Take 4 victory points OR remove 1 white 1-chip from your bag", 5},
 	}
 }
 

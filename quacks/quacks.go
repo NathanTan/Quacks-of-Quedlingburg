@@ -187,19 +187,24 @@ func (gs *GameState) ResumePlay() {
 
 	// Fortune cards
 	if gs.FSM.Current() == FortuneState.String() {
-		drawFortune(gs, gs.fortuneDeck, gs.debug)
+		if gs.fortune != -1 {
+			// Draw a fortune for the first time
+			drawFortune(gs, gs.fortuneDeck, gs.debug)
+		}
+
+		// Check if all players have inputted for their fortune
+		if len(gs.GetRemainingFortunePlayers()) == 0 {
+			gs.FSM.Event(context.Background(), AssignRatTails.String())
+		}
 	}
 
 	// Rat Tails
 	if gs.FSM.Current() == RatTailsState.String() {
-		assignRatTails(gs.players, gs.debug)
+		assignRatTails(&gs.players, gs.debug)
 		gs.FSM.Event(context.Background(), BeginPreparation.String())
 	}
 
 	if gs.FSM.Current() == PreparationState.String() {
-		if gs.debug {
-			fmt.Println("In Prepration Phase")
-		}
 		// Shuffle Player's bags
 		shufflePlayersBags(&gs.players)
 
@@ -383,9 +388,32 @@ func (gs *GameState) StartGame() {
 	drawFortune(gs, gs.fortuneDeck, gs.debug)
 
 	// If input is required, pause for the input
-	// TODO: Fix
-	if gs.FSM.Current() == HandleFortune.String() {
+	if gs.FSM.Current() == FortuneInputState.String() {
+		if gs.fortune == 5 {
+			gs.Awaiting = &Input{
+				Description: "Choose: Take 4 victory points OR remove 1 white 1-chip from your bag" + ". (Choose 1 or 2)",
+				Options:     []string{"1", "2"},
+				Choice:      0,
+				Choice2:     []Chip{}, // todo refactor for buying chips
+				Player:      0,        // Player Position
+				Code:        5,
+			}
+		}
 		return
+	}
+
+	// Handle rat tails for fortune 4
+	if gs.fortune == 4 {
+		if gs.debug {
+			fmt.Println("Assigning Rat Tails")
+			fmt.Printf("score: %d", gs.players[0].score)
+		}
+		assignRatTails(&gs.players, gs.debug)
+		for i := range gs.players {
+			gs.players[i].ratToken += gs.players[i].ratToken
+		}
+		fmt.Printf("player.ratToken = %d\n", gs.players[3].ratToken)
+
 	}
 
 	// If no input is required, no rat tails are assigned since it's the first round
@@ -415,6 +443,19 @@ func (gs GameState) GetRemainingBuyingPlayers() []string {
 		names := []string{}
 		for _, player := range gs.players {
 			if !player.isDoneDrawing {
+				names = append(names, player.name)
+			}
+		}
+		return names
+	}
+	return []string{}
+}
+
+func (gs GameState) GetRemainingFortunePlayers() []string {
+	if gs.FSM.Current() == FortuneInputState.String() {
+		names := []string{}
+		for _, player := range gs.players {
+			if !player.hasCompletedTheFortune {
 				names = append(names, player.name)
 			}
 		}
@@ -459,11 +500,15 @@ func drawFortune(gs *GameState, fortuneDeck []Fortune, debug bool) {
 	fmt.Println(gs.fortuneDeck)
 
 	fortuneDeck, fortune := pop(fortuneDeck)
-	fmt.Printf("FortuneId: %d", fortune.id)
+	if gs.debug {
+		fmt.Printf("Fortune: %s", fortune.Ability)
+	}
 	gs.fortune = fortune.id
 	if fortune.id == 2 {
 		gs.FSM.Event(context.Background(), ReadFortune.String())
 	} else if fortune.id == 3 {
+		gs.FSM.Event(context.Background(), ReadFortune.String())
+	} else if fortune.id == 5 {
 		gs.FSM.Event(context.Background(), ReadFortune.String())
 	}
 	if debug {
@@ -508,7 +553,6 @@ func (player *Player) RollBonusDice(debug bool) {
 
 func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 	// Handle Input
-	fmt.Println("Hit!")
 	fmt.Printf("Fortune: %d, choice: %d\n", fortune, input.Choice)
 
 	if fortune == 2 {
@@ -521,10 +565,18 @@ func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 		for _, player := range gs.players {
 			player.RollBonusDice(gs.debug)
 		}
+	} else if fortune == 5 {
+		// Gain 4 VP
+		if input.Choice == 1 {
+			gs.players[input.Player].score += 4
+		} else if input.Choice == 2 {
+			// Remove a 1 Cherry bomb perminately
+			gs.players[input.Player].bag.DeleteChip(NewChip(White.String(), 1))
+		}
+		gs.players[input.Player].hasCompletedTheFortune = true
 	} else {
 		fmt.Printf("========================\nFORTUNE NOT HANDLED YET - id: %d \n========================", fortune)
 	}
-
 }
 
 func handleRubies(players *[]Player, debug bool) {
@@ -556,29 +608,34 @@ func logPlayers(players []Player) {
 	}
 }
 
-func assignRatTails(players []Player, debug bool) {
+func assignRatTails(players *[]Player, debug bool) {
 	// Find player with the highest score
-	highestScorePlayer := players[0]
-	for i := 1; i < len(players); i++ {
-		if players[i].score > highestScorePlayer.score {
-			highestScorePlayer = players[i]
+	highestScorePlayer := (*players)[0]
+	for i := 1; i < len(*players); i++ {
+		if (*players)[i].score > highestScorePlayer.score {
+			highestScorePlayer = (*players)[i]
 		}
 	}
 
-	for i := 0; i < len(players); i++ {
-		player := i % len(players)
-		fmt.Printf("Player number: %d\n", player)
-		leftPlayer := players[player]
+	// if debug {
+	// 	fmt.Printf("highestScorePlayer: %s, score: %d\n", highestScorePlayer.name, highestScorePlayer.score)
+	// }
+
+	for i := 0; i < len((*players)); i++ {
+		player := i % len((*players))
+		leftPlayer := (*players)[player]
 		rightPlayer := highestScorePlayer
-		fmt.Printf("leftPlayer: %s, rightPlayer: %s\n", leftPlayer.name, rightPlayer.name)
 
 		ratTailCount := countRatTails(leftPlayer.score, rightPlayer.score)
-		leftPlayer.ratToken = ratTailCount
+		// if debug {
+		// 	fmt.Printf("Player number: %d\nleftPlayer: %s, score: %d\nrightPlayer: %s, score: %d\nRat Tail Count: %d\n",
+		// 		player, leftPlayer.name, leftPlayer.score, rightPlayer.name, rightPlayer.score, ratTailCount)
+		// }
+		(*players)[player].ratToken = ratTailCount
 		if debug {
 			fmt.Printf("Player %q rat tail count: %d\n", leftPlayer.name, ratTailCount)
 		}
 	}
-
 }
 
 func getOtherPlayerPosition(players []Player, counter int) int {
@@ -601,13 +658,12 @@ func countRatTails(lowScore int, highScore int) int {
 		86.5, 88.5, 90.5, 92.5, 94.5, 96.5, 98.5, 101.5, 104.5}
 
 	tailCount := 0
-	for i := 0; i < len(ratTailList); i++ {
-		if ratTailList[i] > float32(lowScore) && ratTailList[i] < float32(highScore) {
-			tailCount = tailCount + 1
-		}
-
-		if ratTailList[i] > float32(highScore) {
+	for i := range ratTailList {
+		if ratTailList[i] >= float32(highScore) {
 			break
+		}
+		if ratTailList[i] > float32(lowScore) {
+			tailCount = tailCount + 1
 		}
 	}
 

@@ -9,7 +9,7 @@ type Player struct {
 	bag                    Bag
 	board                  Board
 	isDoneDrawing          bool
-	hasCompletedTheFortune bool // TODO: Implement so the game knows when all the players are done with the fortune
+	hasCompletedTheFortune bool
 	rubyCount              int
 	ratToken               int
 	dropplet               int

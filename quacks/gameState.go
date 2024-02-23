@@ -51,7 +51,10 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		for _, player := range gs.players {
 			player.isDoneDrawing = false
 			player.board.cherryBombValue = 0
+			player.hasCompletedTheFortune = false
 		}
+
+		gs.fortune = -1
 	}
 }
 
@@ -133,7 +136,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 	gs := &GameState{
 		players,
 		1,
-		1,
+		-1,
 		[]int{},
 		1,
 		7,

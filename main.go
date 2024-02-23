@@ -14,7 +14,7 @@ func main() {
 
 	lastPlayerToPull := -1
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 		gs.ResumePlay()
 		fmt.Printf("Current state: %s ------------------------'\n", gs.FSM.Current())
 		if gs.FSM.Current() == q.End.String() {
@@ -73,7 +73,6 @@ func main() {
 			}
 		} else if gs.FSM.Current() == q.FortuneInputState.String() {
 
-			fmt.Println("Hit")
 			gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
 			gs.ResumePlay()
 
