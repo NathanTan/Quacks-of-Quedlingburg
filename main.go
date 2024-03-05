@@ -14,33 +14,43 @@ func main() {
 
 	lastPlayerToPull := -1
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100; i++ {
 		gs.ResumePlay()
 		fmt.Printf("Current state: %s ------------------------'\n", gs.FSM.Current())
 		if gs.FSM.Current() == q.End.String() {
 			fmt.Println("Game is over")
+			break
 
 		} else if gs.FSM.Current() == q.RubySpendingState.String() {
 			gs.ResumePlay()
 			fmt.Println(gs.Awaiting)
 			players := gs.GetPlayerPositionsWithRubies()
-			fmt.Printf("%d players left to spend rubies\n", len(players))
+			fmt.Printf("%d players left to spend rubies, %v\n", len(players), players)
 			if len(players) > 0 {
 				e := gs.Input(q.Input{
 					Description: "",
 					Options:     []string{},
 					Choice:      1,
 					Choice2:     []q.Chip{},
-					Player:      0,
+					Player:      players[0],
 					Code:        -1,
 				})
 
-				fmt.Printf("error: %s\n", e.Description)
+				if len(e.Description) > 0 {
+					fmt.Printf("error: %s\n", e.Description)
+				}
 			} else {
+				fmt.Println("Now ending ruby buys")
 				gs.EndRubyBuys()
 
 			}
 			gs.ResumePlay()
+			remainingPlayers := gs.GetRemainingRubySpendingPlayerNames()
+
+			if len(remainingPlayers) == 0 {
+				gs.EndRubyBuys()
+				fmt.Println("Done buying rubies")
+			}
 
 		} else if gs.FSM.Current() == q.PreparationState.String() {
 
@@ -119,18 +129,42 @@ func main() {
 			// fmt.Printf("Players that still need to buy: %s\n", gs.GetRemainingBuyingPlayers())
 
 		} else if gs.FSM.Current() == q.RubySpendingInputState.String() {
-			fmt.Printf("Awaiting on Player '%d' to '%s'\n", gs.Awaiting.Player, gs.Awaiting.Description)
-			gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
-			gs.ResumePlay()
+			remainingPlayers := gs.GetRemainingRubySpendingPlayerNames()
 
-			gs.Input(q.Input{Description: "", Choice: 1, Player: 1})
-			gs.ResumePlay()
+			if len(remainingPlayers) == 0 {
+				gs.EndRubyBuys()
+				fmt.Println("Done buying rubies")
+			} else if gs.Awaiting != nil {
 
-			gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
-			gs.ResumePlay()
+				fmt.Printf("remaing Players: %s", remainingPlayers)
+				fmt.Printf("Awaiting on Player '%d' to '%s'\n", gs.Awaiting.Player, gs.Awaiting.Description)
+				// for _, playerName := range remainingPlayers {
+				gs.Input(q.Input{Description: "", Choice: 1, Player: gs.GetPlayerPositionByName(remainingPlayers[0])})
+				gs.ResumePlay()
+				gs.Input(q.Input{Description: "", Choice: -1, Player: gs.GetPlayerPositionByName(remainingPlayers[0])})
+				gs.ResumePlay()
+			}
+			// }
 
-			gs.Input(q.Input{Description: "", Choice: 1, Player: 3})
-			gs.ResumePlay()
+			// gs.Input(q.Input{Description: "", Choice: 1, Player: 0})
+			// gs.ResumePlay()
+			// gs.Input(q.Input{Description: "", Choice: -1, Player: 0})
+			// gs.ResumePlay()
+
+			// gs.Input(q.Input{Description: "", Choice: 1, Player: 1})
+			// gs.ResumePlay()
+			// gs.Input(q.Input{Description: "", Choice: -1, Player: 1})
+			// gs.ResumePlay()
+
+			// gs.Input(q.Input{Description: "", Choice: 1, Player: 2})
+			// gs.ResumePlay()
+			// gs.Input(q.Input{Description: "", Choice: -1, Player: 2})
+			// gs.ResumePlay()
+
+			// gs.Input(q.Input{Description: "", Choice: 1, Player: 3})
+			// gs.ResumePlay()
+			// gs.Input(q.Input{Description: "", Choice: -1, Player: 3})
+			// gs.ResumePlay()
 
 		}
 

@@ -52,6 +52,7 @@ func (gs *GameState) enterState(e *fsm.Event) {
 			player.isDoneDrawing = false
 			player.board.cherryBombValue = 0
 			player.hasCompletedTheFortune = false
+			player.hasSpentRubies = false
 		}
 
 		gs.fortune = -1
@@ -166,7 +167,7 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 			{Name: EnterRubySpending.String(), Src: []string{BuyingState.String(), RubySpendingInputState.String()}, Dst: RubySpendingState.String()},
 			{Name: HandleRubySpending.String(), Src: []string{RubySpendingState.String()}, Dst: RubySpendingInputState.String()},
 			{Name: EnterNextRound.String(), Src: []string{RubySpendingState.String(), RubySpendingInputState.String()}, Dst: FortuneState.String()},
-			{Name: End.String(), Src: []string{ScoringState.String()}, Dst: End.String()},
+			{Name: End.String(), Src: []string{ScoringState.String(), RubySpendingState.String()}, Dst: End.String()},
 		},
 		fsm.Callbacks{
 			"enter_state":   func(_ context.Context, e *fsm.Event) { gs.enterState(e) },

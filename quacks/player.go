@@ -10,6 +10,7 @@ type Player struct {
 	board                  Board
 	isDoneDrawing          bool
 	hasCompletedTheFortune bool
+	hasSpentRubies         bool
 	rubyCount              int
 	ratToken               int
 	dropplet               int
@@ -40,12 +41,16 @@ func (player Player) IsDoneDrawing(bombLimit int) bool {
 	return false
 }
 
-func (p Player) moveDropper(amount int, choice int) {
+func (p *Player) moveDropper(amount int, choice int) {
 	if choice == 1 {
 		p.dropplet = p.dropplet + amount
 	} else {
 		fmt.Println("TODO")
 	}
+}
+
+func (p Player) PlayersPotHasExploaded() bool {
+	return p.board.cherryBombValue > p.explosionLimit
 }
 
 func PrintPlayerStatuses(player Player) {
@@ -54,6 +59,7 @@ func PrintPlayerStatuses(player Player) {
 	fmt.Printf("\tCherry Bomb Count - %d\n", player.board.cherryBombValue)
 	fmt.Printf("\tRuby Count - %d\n", player.rubyCount)
 	fmt.Printf("\tOwned Chips - %s\n\n", ChipsString(player.bag.Chips))
+	fmt.Printf("\tDropper Position - %d\n", player.dropplet)
 
 	fmt.Println(player)
 }
@@ -100,6 +106,7 @@ func CreateNewPlayer(name string) Player {
 			testTubePosition: 0,
 			cherryBombValue:  0,
 		},
+		false,
 		false,
 		false,
 		0,
