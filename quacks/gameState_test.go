@@ -105,9 +105,7 @@ func TestSpendingRubies(t *testing.T) {
 
 	gs.StartGame()
 
-	forwardState(gs, "dest")
-
-	gs.FSM.Event(context.Background(), EnterRubySpending.String())
+	forwardState(gs, RubySpendingState.String())
 
 	fmt.Println(gs.FSM.Current())
 
@@ -120,14 +118,13 @@ func TestSpendingRubies(t *testing.T) {
 
 	for i := 0; i < len(playerNames); i++ {
 
-		fmt.Println("hit")
 		remainingPlayers := gs.GetRemainingRubySpendingPlayerNames()
 		if len(remainingPlayers) == 0 {
 			gs.EndRubyBuys()
 			fmt.Println("Done buying rubies")
 		} else if gs.Awaiting != nil {
 
-			fmt.Printf("remaing Players: %s", remainingPlayers)
+			fmt.Printf("remaing Players: %s\n", remainingPlayers)
 			fmt.Printf("Awaiting on Player '%d' to '%s'\n", gs.Awaiting.Player, gs.Awaiting.Description)
 			// for _, playerName := range remainingPlayers {
 			gs.Input(Input{Description: "", Choice: 1, Player: gs.GetPlayerPositionByName(remainingPlayers[0])})
@@ -137,12 +134,19 @@ func TestSpendingRubies(t *testing.T) {
 		}
 	}
 
-	for _, player := range gs.players {
-		if player.rubyCount != 0 {
+	// Check that every other player spent their rubies
+	for i, player := range gs.players {
+		if i%2 == 0 && player.rubyCount != 0 {
 			t.Errorf("Player has unspent rubies")
 		}
-		if player.dropplet == 0 {
+		if i%2 == 0 && player.dropplet != 1 {
 			t.Errorf("Player didn't increase their dropplet value")
+		}
+		if i%2 == 1 && player.rubyCount != 2 {
+			t.Errorf("Player has spent rubies")
+		}
+		if i%2 == 1 && player.dropplet > 0 {
+			t.Errorf("Player %d increased their dropplet value", i)
 		}
 	}
 
@@ -162,6 +166,69 @@ func TestSpendingRubies(t *testing.T) {
 	// }
 }
 
+// Use case is when there is at least 1 player left that can spend their
+// rubies but we are awaiting on the wrong player.
+func TestSpendRubiesOnInvalidPlayer(t *testing.T) {
+	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
+
+	gs := CreateGameState(playerNames, true)
+
+	// Given all the players Rubies to spend
+	for i := range gs.players {
+		gs.players[i].rubyCount = 2
+	}
+
+	// Set up the fortune deck for the test
+	gs.fortuneDeck = append(gs.fortuneDeck, Fortune{
+		"Test",
+		0,
+	})
+
+	gs.StartGame()
+
+	forwardState(gs, RubySpendingState.String())
+
+	fmt.Println(gs.FSM.Current())
+
+	// Given all the players Rubies to spend
+	for i := range gs.players {
+		gs.players[i].rubyCount = 1
+	}
+
+	// Player 3 gets to spend rubies
+	gs.players[2].rubyCount = 2
+
+	gs.ResumePlay()
+
+	for i := 0; i < len(playerNames); i++ {
+
+		remainingPlayers := gs.GetRemainingRubySpendingPlayerNames()
+		if len(remainingPlayers) == 0 {
+			gs.EndRubyBuys()
+			fmt.Println("Done buying rubies")
+		} else if gs.Awaiting != nil {
+
+			fmt.Printf("remaing Players: %s\n", remainingPlayers)
+			fmt.Printf("Awaiting on Player '%d' to '%s'\n", gs.Awaiting.Player, gs.Awaiting.Description)
+			// for _, playerName := range remainingPlayers {
+			gs.Input(Input{Description: "", Choice: 1, Player: gs.GetPlayerPositionByName(remainingPlayers[0])})
+			gs.ResumePlay()
+			gs.Input(Input{Description: "", Choice: 1, Player: gs.GetPlayerPositionByName(remainingPlayers[0])})
+			gs.ResumePlay()
+		}
+	}
+
+	// Check that every other player spent their rubies
+	for i, player := range gs.players {
+		if i != 2 && player.dropplet > 0 {
+			t.Errorf("Player increased their dropplet value")
+		}
+		if i == 2 && player.rubyCount == 2 {
+			t.Errorf("Player has unspent rubies")
+		}
+	}
+}
+
 func addInputForAllPlayers(gs *GameState, choice int) {
 	for i := range gs.players {
 		gs.Input(Input{Description: "", Choice: choice, Player: i})
@@ -170,11 +237,29 @@ func addInputForAllPlayers(gs *GameState, choice int) {
 }
 
 func forwardState(gs *GameState, stateDestination string) {
+	fmt.Printf("Forwarding State. Current State: %s\n", gs.FSM.Current())
+
 	gs.FSM.Event(context.Background(), ReadFortune.String())
+	fmt.Printf("Current State1: %s\n", gs.FSM.Current())
+
 	gs.FSM.Event(context.Background(), AssignRatTails.String())
+	fmt.Printf("Current State2: %s\n", gs.FSM.Current())
+
 	gs.FSM.Event(context.Background(), BeginPreparation.String())
+	fmt.Printf("Current State3: %s\n", gs.FSM.Current())
+
 	gs.FSM.Event(context.Background(), EnterScoring.String())
+	fmt.Printf("Current State: %s\n", gs.FSM.Current())
+
 	gs.FSM.Event(context.Background(), EnterBuying.String())
+	fmt.Printf("Current State: %s\n", gs.FSM.Current())
+
 	gs.FSM.Event(context.Background(), EnterRubySpending.String())
-	// gs.FSM.Event(context.Background(), HandleRubySpending.String())
+	fmt.Printf("Current State: %s\n", gs.FSM.Current())
+	if stateDestination == RubySpendingState.String() {
+		return
+	}
+	if stateDestination == RubySpendingInputState.String() {
+		return
+	}
 }

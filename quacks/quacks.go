@@ -142,7 +142,17 @@ func (gs *GameState) Input(input Input) Error {
 			if gs.debug {
 				fmt.Println("Player has spent rubies")
 			}
-			gs.Awaiting = nil
+
+			remaingPlayerNames := gs.GetRemainingRubySpendingPlayerNames()
+			if len(remaingPlayerNames) > 0 {
+				stillAwaitingOnPlayer := gs.GetPlayerPosition(remaingPlayerNames[0])
+				gs.Awaiting = &Input{
+					Description: "Please select 1 for spending Rubies on the dropper or 2 for refilling your flask",
+					Choice:      -1,
+					Player:      stillAwaitingOnPlayer,
+					Code:        getInputCodes()["VPOrBuying"],
+				}
+			}
 			return Error{}
 		}
 
@@ -181,18 +191,12 @@ func (gs *GameState) Input(input Input) Error {
 				gs.players[playerNumber].hasSpentRubies = true
 			}
 
-			if !player.hasSpentRubies && player.rubyCount >= 2 {
-				names := gs.GetRemainingRubySpendingPlayerNames()
-				if len(names) > 0 {
-					gs.Awaiting.Player = gs.GetPlayerPositionByName(names[0])
-				}
-			}
 		} else {
 			if gs.debug {
 				fmt.Printf("Player %s doesn't have enough rubies to spend\n", player.name)
 			}
 			gs.players[playerNumber].hasSpentRubies = true
-			gs.Awaiting.Player += 1
+			// gs.Awaiting.Player += 1
 		}
 
 		// TODO: Fix around here
@@ -200,6 +204,13 @@ func (gs *GameState) Input(input Input) Error {
 			gs.FSM.Event(context.Background(), EnterRubySpending.String())
 			gs.Awaiting = nil
 		}
+
+		// if !player.hasSpentRubies {
+		names := gs.GetRemainingRubySpendingPlayerNames()
+		if len(names) > 0 {
+			gs.Awaiting.Player = gs.GetPlayerPositionByName(names[0])
+		}
+		// }
 	}
 
 	return Error{}
