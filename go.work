@@ -3,4 +3,6 @@ go 1.21
 use (
     .
     ./quacks
+    ./client
+    ./game
     )
