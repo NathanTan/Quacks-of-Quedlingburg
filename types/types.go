@@ -7,8 +7,13 @@ type Login struct {
 	Username string `json: "userName"`
 }
 
+type WSMessage struct {
+	Type string `json: "type"`
+	Data []byte `json: "data"`
+}
+
 type GameClient struct {
-	clientId int
-	username string
-	conn     *websocket.Conn
+	ClientId int
+	Username string
+	Conn     *websocket.Conn
 }

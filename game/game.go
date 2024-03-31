@@ -1,6 +1,7 @@
 package game
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -19,24 +20,56 @@ type PlayerSession struct {
 	conn      *websocket.Conn
 }
 
+type GameServer struct {
+	ctx      *actor.Context
+	sessions map[*actor.PID]struct{}
+}
+
 func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 	return func() actor.Receiver {
 		return &PlayerSession{
 			sessionId: sid,
-			// clientId: clientId,
-			// username: username,
-			conn: conn,
+			clientId:  clientId,
+			username:  username,
+			inLobby:   true,
+			conn:      conn,
 		}
 	}
 }
 
 func (s *PlayerSession) Recieve(c *actor.Context) {
+	switch c.Message().(type) {
+	case actor.Started:
+		s.readLoop()
+		// s.ctx = c
+		// _ = msg
+	}
 
 }
 
-type GameServer struct {
-	ctx      *actor.Context
-	sessions map[*actor.PID]struct{}
+func (s *PlayerSession) readLoop() {
+	var msg types.WSMessage
+	for {
+		if err := s.conn.ReadJSON(msg); err != nil {
+			fmt.Println("read error", err)
+			return
+		}
+		go s.handleMessage(msg)
+	}
+}
+
+func (s *PlayerSession) handleMessage(msg types.WSMessage) {
+	switch msg.Type {
+	case "Login":
+		var loginMsg types.Login
+		if err := json.Unmarshal(msg.Data, &loginMsg); err != nil {
+			panic(err) // Panic since this is a single player session, not in the server
+		}
+		s.clientId = loginMsg.ClientId
+		s.username = loginMsg.Username
+		fmt.Println(loginMsg)
+	}
+
 }
 
 func newGameServer() actor.Receiver {
@@ -56,9 +89,9 @@ func (s *GameServer) startHTTP() {
 
 func newGameClient(conn *websocket.Conn, username string) *types.GameClient {
 	return &types.GameClient{
-		clientId: rand.Intn(math.MaxInt),
-		username: username,
-		conn:     conn,
+		ClientId: rand.Intn(math.MaxInt),
+		Username: username,
+		Conn:     conn,
 	}
 }
 
@@ -82,8 +115,8 @@ func (s *GameServer) handleWS(w http.ResponseWriter, r *http.Request) {
 
 	// ps := newPlayerSessions()
 	sid := rand.Intn(math.MaxInt)
-
 	pid := s.ctx.SpawnChild(newPlayerSession(sid, conn), fmt.Sprintf("session_%d", sid))
+	s.sessions[pid] = struct{}{}
 	fmt.Printf("client with sid %d and pid %s just connected\n", sid, pid)
 }
 
