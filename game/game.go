@@ -12,10 +12,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type PlayerState struct {
+	Position types.Position
+	HP       int
+}
+
 type PlayerSession struct {
 	sessionId int
+	clientId  int
 	username  string
-	clientId  string
 	inLobby   bool
 	conn      *websocket.Conn
 }
@@ -28,11 +33,11 @@ type GameServer struct {
 func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 	return func() actor.Receiver {
 		return &PlayerSession{
-			sessionId: sid,
-			clientId:  clientId,
-			username:  username,
-			inLobby:   true,
 			conn:      conn,
+			sessionId: sid,
+			// clientId:  clientId,
+			// username:  username,
+			// inLobby:   true,
 		}
 	}
 }
@@ -67,7 +72,16 @@ func (s *PlayerSession) handleMessage(msg types.WSMessage) {
 		}
 		s.clientId = loginMsg.ClientId
 		s.username = loginMsg.Username
+		fmt.Println("loginMsg Message:")
 		fmt.Println(loginMsg)
+
+	case "playerState":
+		var ps types.PlayerState
+
+		if err := json.Unmarshal(msg.Data, &ps); err != nil {
+			panic(err)
+		}
+		fmt.Println(ps)
 	}
 
 }
@@ -78,12 +92,20 @@ func newGameServer() actor.Receiver {
 	}
 }
 
+func (s *GameServer) Receive(c *actor.Context) {
+	switch msg := c.Message().(type) {
+	case actor.Started:
+		s.startHTTP()
+		s.ctx = c
+		_ = msg
+	}
+}
+
 func (s *GameServer) startHTTP() {
 	fmt.Println("starting HTTP server on port 40000")
 	go func() {
 		http.HandleFunc("/ws", s.handleWS)
 		http.ListenAndServe(":40000", nil)
-
 	}()
 }
 
@@ -92,15 +114,6 @@ func newGameClient(conn *websocket.Conn, username string) *types.GameClient {
 		ClientId: rand.Intn(math.MaxInt),
 		Username: username,
 		Conn:     conn,
-	}
-}
-
-func (s *GameServer) Receive(c *actor.Context) {
-	switch msg := c.Message().(type) {
-	case actor.Started:
-		s.startHTTP()
-		s.ctx = c
-		_ = msg
 	}
 }
 

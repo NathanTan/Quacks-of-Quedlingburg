@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"time"
 	"types"
 
 	"github.com/anthdm/hollywood/actor"
@@ -30,12 +31,13 @@ type GameClient struct {
 func newGameServer() actor.Receiver {
 	return &GameServer{}
 }
-func (c *types.GameClient) Login() error {
-	return c.conn.WriteJSON(types.Login{
-		ClientId: c.clientId,
-		Username: c.username,
-	})
-}
+
+//	func (c *GameClient) login() error {
+//		return c.conn.WriteJSON(types.Login{
+//			ClientId: c.clientId,
+//			Username: c.username,
+//		})
+//	}/s
 func newGameClient(conn *websocket.Conn, username string) *GameClient {
 	return &GameClient{
 		clientId: rand.Intn(math.MaxInt),
@@ -71,7 +73,7 @@ func Run() {
 	}
 
 	c := newGameClient(conn, "James")
-	if err := c.Login(); err != nil {
+	if err := c.login(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -88,4 +90,23 @@ func Run() {
 	// Start server on port specified above
 	log.Fatal(http.ListenAndServe(port, nil))
 
+	for {
+		state := types.PlayerState{
+			HP:       100,
+			Position: types.Position{X: 5, Y: 0}}
+
+		b, err := json.Marshal(state)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		msg := types.WSMessage{
+			Type: "PlayerState",
+			Data: b,
+		}
+		if err := conn.WriteJSON(msg); err != nil {
+			log.Fatal(err)
+		}
+		time.Sleep(time.Millisecond * 60 * 2)
+	}
 }

@@ -3,7 +3,7 @@ package types
 import "golang.org/x/net/websocket"
 
 type Login struct {
-	ClientId int    `json: "clientID"`
+	ClientId string `json: "clientID"`
 	Username string `json: "userName"`
 }
 
@@ -16,4 +16,14 @@ type GameClient struct {
 	ClientId int
 	Username string
 	Conn     *websocket.Conn
+}
+type Position struct {
+	X int `json: "x"`
+	Y int `json: "y"`
+}
+
+// Player state
+type PlayerState struct {
+	HP       int `json: "HP"`
+	Position Position
 }
