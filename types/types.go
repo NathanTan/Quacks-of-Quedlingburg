@@ -1,9 +1,9 @@
 package types
 
-import "golang.org/x/net/websocket"
+import "github.com/gorilla/websocket"
 
 type Login struct {
-	ClientId string `json: "clientID"`
+	ClientId int    `json: "clientID"`
 	Username string `json: "userName"`
 }
 

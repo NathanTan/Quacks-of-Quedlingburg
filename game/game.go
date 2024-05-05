@@ -35,21 +35,20 @@ func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 		return &PlayerSession{
 			conn:      conn,
 			sessionId: sid,
-			// clientId:  clientId,
-			// username:  username,
-			// inLobby:   true,
+			clientId:  3,
+			username:  "username",
+			inLobby:   true,
 		}
 	}
 }
 
-func (s *PlayerSession) Recieve(c *actor.Context) {
+func (s *PlayerSession) Receive(c *actor.Context) {
 	switch c.Message().(type) {
 	case actor.Started:
 		s.readLoop()
 		// s.ctx = c
 		// _ = msg
 	}
-
 }
 
 func (s *PlayerSession) readLoop() {

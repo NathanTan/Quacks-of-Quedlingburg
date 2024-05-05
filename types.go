@@ -1,14 +1,14 @@
-package types
+// package types
 
-import "golang.org/x/net/websocket"
+// import "golang.org/x/net/websocket"
 
-type Login struct {
-	ClientId int    `json: "clientID"`
-	Username string `json: "userName"`
-}
+// type Login struct {
+// 	ClientId int    `json: "clientID"`
+// 	Username string `json: "userName"`
+// }
 
-type GameClient struct {
-	clientId int
-	username string
-	conn     *websocket.Conn
-}
+// type GameClient struct {
+// 	clientId int
+// 	username string
+// 	conn     *websocket.Conn
+// }

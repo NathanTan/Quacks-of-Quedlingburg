@@ -10,7 +10,6 @@ import (
 	"time"
 	"types"
 
-	"github.com/anthdm/hollywood/actor"
 	"github.com/gorilla/websocket"
 )
 
@@ -28,9 +27,9 @@ type GameClient struct {
 	conn     *websocket.Conn
 }
 
-func newGameServer() actor.Receiver {
-	return &GameServer{}
-}
+// func newGameServer() actor.Receiver {
+// 	return &GameServer{}
+// }
 
 //	func (c *GameClient) login() error {
 //		return c.conn.WriteJSON(types.Login{
