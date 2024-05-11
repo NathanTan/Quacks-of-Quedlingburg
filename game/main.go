@@ -1,4 +1,4 @@
-package game
+package main
 
 import (
 	"encoding/json"
@@ -132,7 +132,7 @@ func (s *GameServer) handleWS(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("client with sid %d and pid %s just connected\n", sid, pid)
 }
 
-func RunGameServer() {
+func main() {
 
 	e, _ := actor.NewEngine(actor.EngineConfig{})
 	pid := e.Spawn(newGameServer, "server")

@@ -1,4 +1,4 @@
-package client
+package main
 
 import (
 	"encoding/json"
@@ -59,7 +59,7 @@ func (c *GameClient) login() error {
 	return c.conn.WriteJSON(msg)
 }
 
-func Run() {
+func main() {
 
 	dialer := websocket.Dialer{
 		ReadBufferSize:  1024,

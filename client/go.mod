@@ -1,6 +1,6 @@
-module client
+module main
 
-go 1.21
+go 1.21.4
 
 replace types => ../types/
 

@@ -1,4 +1,4 @@
-module game
+module main
 
 go 1.21
 
