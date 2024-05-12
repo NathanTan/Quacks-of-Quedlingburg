@@ -31,20 +31,23 @@ type GameClient struct {
 // 	return &GameServer{}
 // }
 
-//	func (c *GameClient) login() error {
-//		return c.conn.WriteJSON(types.Login{
-//			ClientId: c.clientId,
-//			Username: c.username,
-//		})
-//	}/s
+// func (c *GameClient) login() error {
+// 	return c.conn.WriteJSON(types.Login{
+// 		ClientId: c.clientId,
+// 		Username: c.username,
+// 	})
+// }
+
 func newGameClient(conn *websocket.Conn, username string) *GameClient {
 	return &GameClient{
 		clientId: rand.Intn(math.MaxInt),
 		username: username,
+		conn:     conn,
 	}
 }
 
 func (c *GameClient) login() error {
+	fmt.Println("Attempting login")
 	b, err := json.Marshal(types.Login{
 		ClientId: c.clientId,
 		Username: c.username,
@@ -56,6 +59,10 @@ func (c *GameClient) login() error {
 		Type: "Login",
 		Data: b,
 	} // He said this is bad
+
+	fmt.Println("Send message")
+	fmt.Println(msg)
+	fmt.Println(c)
 	return c.conn.WriteJSON(msg)
 }
 
@@ -87,7 +94,7 @@ func main() {
 		fmt.Fprintf(w, "Hi")
 	})
 	// Start server on port specified above
-	log.Fatal(http.ListenAndServe(port, nil))
+	// log.Fatal(http.ListenAndServe(port, nil))
 
 	for {
 		state := types.PlayerState{
@@ -103,9 +110,11 @@ func main() {
 			Type: "PlayerState",
 			Data: b,
 		}
+
+		fmt.Println("Sending state")
 		if err := conn.WriteJSON(msg); err != nil {
 			log.Fatal(err)
 		}
-		time.Sleep(time.Millisecond * 60 * 2)
+		time.Sleep(time.Millisecond * 60 * 10 * 4)
 	}
 }

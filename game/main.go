@@ -43,6 +43,7 @@ func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 }
 
 func (s *PlayerSession) Receive(c *actor.Context) {
+	fmt.Println("PlayerSession Receiving messages")
 	switch c.Message().(type) {
 	case actor.Started:
 		s.readLoop()
@@ -52,17 +53,22 @@ func (s *PlayerSession) Receive(c *actor.Context) {
 }
 
 func (s *PlayerSession) readLoop() {
-	var msg types.WSMessage
+	var msg *types.WSMessage
 	for {
 		if err := s.conn.ReadJSON(msg); err != nil {
 			fmt.Println("read error", err)
+			fmt.Println("Problem Message:")
+			fmt.Println(msg)
 			return
 		}
+		fmt.Println("Handle Message")
+		fmt.Println(msg)
 		go s.handleMessage(msg)
 	}
 }
 
-func (s *PlayerSession) handleMessage(msg types.WSMessage) {
+func (s *PlayerSession) handleMessage(msg *types.WSMessage) {
+	fmt.Println("Handling message")
 	switch msg.Type {
 	case "Login":
 		var loginMsg types.Login
@@ -74,12 +80,13 @@ func (s *PlayerSession) handleMessage(msg types.WSMessage) {
 		fmt.Println("loginMsg Message:")
 		fmt.Println(loginMsg)
 
-	case "playerState":
+	case "PlayerState":
 		var ps types.PlayerState
 
 		if err := json.Unmarshal(msg.Data, &ps); err != nil {
 			panic(err)
 		}
+		fmt.Println("PlayerState:")
 		fmt.Println(ps)
 	}
 
@@ -123,7 +130,7 @@ func (s *GameServer) handleWS(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ERROR: " + err.Error())
 	}
 	fmt.Print("New client trying to connect")
-	fmt.Print(conn)
+	// fmt.Print(conn)
 
 	// ps := newPlayerSessions()
 	sid := rand.Intn(math.MaxInt)
@@ -140,6 +147,6 @@ func main() {
 	select {}
 }
 
-func login(conn *websocket.Conn, data types.Login) error {
-	return conn.WriteJSON(data)
-}
+// func login(conn *websocket.Conn, data types.Login) error {
+// 	return conn.WriteJSON(data)
+// }
