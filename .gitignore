@@ -3,3 +3,4 @@
 res*.txt
 coverage.*
 bin
+node_modules
