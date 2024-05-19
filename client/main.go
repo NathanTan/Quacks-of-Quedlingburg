@@ -91,13 +91,20 @@ func main() {
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi")
 	})
-	// Start server on port specified above
-	// log.Fatal(http.ListenAndServe(port, nil))
 
-	for {
+	http.HandleFunc("/pos", func(w http.ResponseWriter, r *http.Request) {
+		sendGameMove(conn)
+	})
+	// Start server on port specified above
+	log.Fatal(http.ListenAndServe(port, nil))
+
+}
+
+func sendGameMove(conn *websocket.Conn) {
+	for i := 0; i < 5; i++ {
 		state := types.PlayerState{
 			HP:       100,
-			Position: types.Position{X: 5, Y: 0}}
+			Position: types.Position{X: 5, Y: i}}
 
 		b, err := json.Marshal(state)
 		if err != nil {
@@ -109,12 +116,10 @@ func main() {
 			Data: b,
 		}
 
-		fmt.Println("Sending state")
+		// fmt.Println("Sending state")
 		if err := conn.WriteJSON(msg); err != nil {
 			log.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 60 * 10 * 4)
 	}
 }
-
-// Check 1:02 on the youtube video

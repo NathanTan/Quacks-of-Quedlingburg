@@ -57,17 +57,17 @@ func (s *PlayerSession) Receive(c *actor.Context) {
 func (s *PlayerSession) readLoop() {
 	var msg *types.WSMessage
 	for {
-		messageType, p, err := s.conn.ReadMessage()
+		_, p, err := s.conn.ReadMessage()
 		if err != nil {
 			fmt.Println("read error", err)
 			fmt.Println("Problem Message:")
 			fmt.Println(msg)
 			return
 		}
-		fmt.Println("Handle Message")
+		// fmt.Println("Handle Message")
 		// fmt.Println(msg)
-		fmt.Println(messageType)
-		fmt.Println(p)
+		// fmt.Println(messageType)
+		// fmt.Println(p)
 		var receivedMsg types.WSMessage
 
 		err = json.Unmarshal(p, &receivedMsg)
@@ -77,8 +77,8 @@ func (s *PlayerSession) readLoop() {
 			fmt.Println(msg)
 			return
 		}
-		fmt.Println("Unmarshaled payload")
-		fmt.Println(receivedMsg)
+		// fmt.Println("Unmarshaled payload")
+		// fmt.Println(receivedMsg)
 		go s.handleMessage(&receivedMsg)
 	}
 }
@@ -93,8 +93,7 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) {
 		}
 		s.clientId = loginMsg.ClientId
 		s.username = loginMsg.Username
-		fmt.Println("loginMsg Message:")
-		fmt.Println(loginMsg)
+		fmt.Printf("Conducted login for id: %d, name: %s\n", s.clientId, s.username)
 
 	case "PlayerState":
 		var ps types.PlayerState
