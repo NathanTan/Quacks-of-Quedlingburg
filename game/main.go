@@ -31,6 +31,7 @@ type GameServer struct {
 }
 
 func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
+	fmt.Printf("Creating new player session for %d\n", sid)
 	return func() actor.Receiver {
 		return &PlayerSession{
 			conn:      conn,
@@ -44,6 +45,7 @@ func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 
 func (s *PlayerSession) Receive(c *actor.Context) {
 	fmt.Println("PlayerSession Receiving messages")
+	fmt.Println(c.Message())
 	switch c.Message().(type) {
 	case actor.Started:
 		s.readLoop()
@@ -55,20 +57,34 @@ func (s *PlayerSession) Receive(c *actor.Context) {
 func (s *PlayerSession) readLoop() {
 	var msg *types.WSMessage
 	for {
-		if err := s.conn.ReadJSON(msg); err != nil {
+		messageType, p, err := s.conn.ReadMessage()
+		if err != nil {
 			fmt.Println("read error", err)
 			fmt.Println("Problem Message:")
 			fmt.Println(msg)
 			return
 		}
 		fmt.Println("Handle Message")
-		fmt.Println(msg)
-		go s.handleMessage(msg)
+		// fmt.Println(msg)
+		fmt.Println(messageType)
+		fmt.Println(p)
+		var receivedMsg types.WSMessage
+
+		err = json.Unmarshal(p, &receivedMsg)
+		if err != nil {
+			fmt.Println("read error", err)
+			fmt.Println("Problem Message:")
+			fmt.Println(msg)
+			return
+		}
+		fmt.Println("Unmarshaled payload")
+		fmt.Println(receivedMsg)
+		go s.handleMessage(&receivedMsg)
 	}
 }
 
 func (s *PlayerSession) handleMessage(msg *types.WSMessage) {
-	fmt.Println("Handling message")
+	fmt.Printf("Handling message - type: %s\n", msg.Type)
 	switch msg.Type {
 	case "Login":
 		var loginMsg types.Login
@@ -99,6 +115,7 @@ func newGameServer() actor.Receiver {
 }
 
 func (s *GameServer) Receive(c *actor.Context) {
+	fmt.Printf("GameServer Receiving messages\n")
 	switch msg := c.Message().(type) {
 	case actor.Started:
 		s.startHTTP()
@@ -125,11 +142,16 @@ func newGameClient(conn *websocket.Conn, username string) *types.GameClient {
 
 // handles the updates of the websocket
 func (s *GameServer) handleWS(w http.ResponseWriter, r *http.Request) {
-	conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+	conn, err := upgrader.Upgrade(w, r, nil)
+
 	if err != nil {
 		fmt.Println("ERROR: " + err.Error())
 	}
-	fmt.Print("New client trying to connect")
+	fmt.Print("New client trying to connect\n")
 	// fmt.Print(conn)
 
 	// ps := newPlayerSessions()

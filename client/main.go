@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const wsServerEndpoint = "ws://Localhost:40000/ws"
+const wsServerEndpoint = "ws://localhost:40000/ws"
 
 // func (c *GameClient) Connect() error {
 // 	c.conn
@@ -26,17 +26,6 @@ type GameClient struct {
 	username string
 	conn     *websocket.Conn
 }
-
-// func newGameServer() actor.Receiver {
-// 	return &GameServer{}
-// }
-
-// func (c *GameClient) login() error {
-// 	return c.conn.WriteJSON(types.Login{
-// 		ClientId: c.clientId,
-// 		Username: c.username,
-// 	})
-// }
 
 func newGameClient(conn *websocket.Conn, username string) *GameClient {
 	return &GameClient{
@@ -60,10 +49,18 @@ func (c *GameClient) login() error {
 		Data: b,
 	} // He said this is bad
 
+	jsonMsg, err := json.Marshal(msg)
+
+	if err != nil {
+		return err
+	}
+	// message := []byte("Hello from the client!")
+	// err = c.conn.WriteMessage(websocket.TextMessage, message)
+
 	fmt.Println("Send message")
 	fmt.Println(msg)
 	fmt.Println(c)
-	return c.conn.WriteJSON(msg)
+	return c.conn.WriteMessage(websocket.TextMessage, jsonMsg)
 }
 
 func main() {
@@ -77,6 +74,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer conn.Close()
 
 	c := newGameClient(conn, "James")
 	if err := c.login(); err != nil {
@@ -118,3 +116,5 @@ func main() {
 		time.Sleep(time.Millisecond * 60 * 10 * 4)
 	}
 }
+
+// Check 1:02 on the youtube video
