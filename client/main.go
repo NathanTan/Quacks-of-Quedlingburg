@@ -10,6 +10,7 @@ import (
 	"time"
 	"types"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
@@ -81,26 +82,46 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./html/index.html")
+	// Serve React app
+	// r.StaticFS("/", http.Dir("/src/public/index.html"))
+	// Set the router as the default one shipped with Gin
+	// router := gin.Default()
+
+	// Serve frontend static files
+	// router.Use(static.Serve("/", static.LocalFile("./src/public", true)))
+	r := gin.Default()
+	// Serve React app
+	// r.Static("/static", "../src/public") // Serve static files under the /static route
+	r.Static("/static", "../dist")   // Serve static files from the dist directory under the /static route
+	r.LoadHTMLGlob("../dist/*.html") // Load HTML files
+
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil) // Serve index.html file on accessing root route
 	})
 
-	port := ":5000"
+	r.POST("/move", func(c *gin.Context) {
+		sendGameMove(conn)
+	})
+
+	port := ":3000"
+
+	// Start the server on port 5000
+	r.Run(port)
+
 	fmt.Println("Server is running on port" + port)
+
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.ServeFile(w, r, "./html/index.html")
+	// })
+
 	// Serve api /hi
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi")
 	})
-
-	http.HandleFunc("/pos", func(w http.ResponseWriter, r *http.Request) {
-		sendGameMove(conn)
-	})
-	// Start server on port specified above
-	log.Fatal(http.ListenAndServe(port, nil))
-
 }
 
 func sendGameMove(conn *websocket.Conn) {
+	fmt.Println("Sending move")
 	for i := 0; i < 5; i++ {
 		state := types.PlayerState{
 			HP:       100,
