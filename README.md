@@ -1,6 +1,15 @@
-# Getting Started with Create React App
+# Quacks of Quedlingburg
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+To run:
+npm run bundle
+
+./game/go build
+./game/main.exe
+
+./client/go build
+./client/main.exe
+
+
 
 ## Available Scripts
 

@@ -91,15 +91,34 @@ func main() {
 	// router.Use(static.Serve("/", static.LocalFile("./src/public", true)))
 	r := gin.Default()
 	// Serve React app
-	// r.Static("/static", "../src/public") // Serve static files under the /static route
-	r.Static("/static", "../dist")   // Serve static files from the dist directory under the /static route
-	r.LoadHTMLGlob("../dist/*.html") // Load HTML files
+	// r.StaticFS("/static/public", http.Dir("../src/public")) // Serve static files under the /static route
+	r.StaticFS("/static", http.Dir("../dist")) // Serve static files from the dist directory under the /static route
+
+	// Serve static files from the dist/public directory
+	r.Static("/public", "./dist/public")
+
+	// r.StaticFS("/static/public", http.Dir("../src/public")) // Serve static files from the dist directory under the /static route
+	// r.Static("/static", "../src/public") // Serve static files from the dist directory under the /static route
+	r.LoadHTMLGlob("../dist/index.html") // Load HTML files
+
+	// // Create a file server for serving static files from the dist directory
+	// distFileServer := http.FileServer(http.Dir("../dist"))
+
+	// // Create a file server for serving static files from the src/public directory
+	// publicFileServer := http.FileServer(http.Dir("../src/public"))
+
+	// // Serve static files from the dist directory under the /static/dist route
+	// r.GET("/static/dist/*filepath", gin.WrapH(distFileServer))
+
+	// // Serve static files from the src/public directory under the /static/public route
+	// r.GET("/static/public/*filepath", gin.WrapH(publicFileServer))
 
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil) // Serve index.html file on accessing root route
 	})
 
 	r.POST("/move", func(c *gin.Context) {
+		fmt.Println("Move received")
 		sendGameMove(conn)
 	})
 

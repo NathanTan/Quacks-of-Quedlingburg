@@ -1,5 +1,6 @@
 import React from 'react';
-import SendMoveButton from './sendMoveButton';
+import SendMoveButton from './SendMoveButton';
+import LogButton from './button';
 
 interface Props {
   message: string;
@@ -10,7 +11,7 @@ const ParentComponent: React.FC = () => {
 };
 
 const MyComponent: React.FC<Props> = ({ message }) => {
-  return (<div><h1>{message}</h1><SendMoveButton /></div>);
+  return (<div><link rel="manifest" href="/public/manifest.json" /><h1>{message}</h1><SendMoveButton /><LogButton /></div>);
 };
 
 export default MyComponent;
