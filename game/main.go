@@ -127,6 +127,8 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 
 		jsonMsg, err := json.Marshal(msg)
 
+		fmt.Println("Sending Message: " + string(jsonMsg))
+
 		// Send the response message
 		err = s.conn.WriteMessage(websocket.TextMessage, jsonMsg)
 		if err != nil {

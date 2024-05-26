@@ -183,12 +183,13 @@ func main() {
 
 	port := ":3000"
 
+	go readLoop(c) // TODO: Fix the connection so that it isn't the same for every client
+
 	// Start the server on port 5000
 	r.Run(port)
 
 	fmt.Println("Server is running on port" + port)
 
-	readLoop(c) // TODO: Fix the connection so that it isn't the same for every client
 }
 
 func sendGameMove(conn *websocket.Conn) {
@@ -218,6 +219,8 @@ func sendGameMove(conn *websocket.Conn) {
 
 func readLoop(c *GameClient) {
 	var msg *types.WSMessage
+	// i := 0
+	fmt.Printf("Reading messages\n")
 	for {
 		_, payload, err := c.conn.ReadMessage()
 		if err != nil {
@@ -226,6 +229,12 @@ func readLoop(c *GameClient) {
 			fmt.Println(msg)
 			return
 		}
+
+		if payload == nil {
+			fmt.Println("Payload is nil")
+			return
+		}
+
 		// fmt.Println("Handle Message")
 		// fmt.Println(msg)
 		// fmt.Println(messageType)
@@ -239,8 +248,8 @@ func readLoop(c *GameClient) {
 			fmt.Println(msg)
 			return
 		}
-		// fmt.Println("Unmarshaled payload")
-		// fmt.Println(receivedMsg)
+		fmt.Println("Unmarshaled payload")
+		fmt.Println(receivedMsg.Type)
 		go handleMessage(&receivedMsg)
 	}
 }
