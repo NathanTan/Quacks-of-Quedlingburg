@@ -2,6 +2,8 @@ import React from 'react';
 import SendMoveButton from './SendMoveButton';
 import LogButton from './button';
 import NewGameButton from './NewGameButton';
+import Board from './board';
+// import Board from './Board';
 
 interface Props {
   message: string;
@@ -16,6 +18,7 @@ const MyComponent: React.FC<Props> = ({ message }) => {
     <link rel="manifest" href="/public/manifest.json" />
     <h1>{message}</h1>
     <SendMoveButton /><LogButton /><NewGameButton />
+    <Board />
     </div>);
 };
 
