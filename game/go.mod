@@ -3,6 +3,7 @@ module main
 go 1.21
 
 replace types => ../types/
+replace quacks => ../quacks/
 
 require (
 	github.com/anthdm/hollywood v0.0.0-20240115210651-dd34702ee21f

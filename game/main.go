@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"net/http"
+	"quacks"
 	"types"
 
 	"github.com/anthdm/hollywood/actor"
@@ -80,10 +82,11 @@ func (s *PlayerSession) readLoop() {
 		// fmt.Println("Unmarshaled payload")
 		// fmt.Println(receivedMsg)
 		go s.handleMessage(&receivedMsg)
+
 	}
 }
 
-func (s *PlayerSession) handleMessage(msg *types.WSMessage) {
+func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 	fmt.Printf("Handling message - type: %s\n", msg.Type)
 	switch msg.Type {
 	case "Login":
@@ -103,8 +106,37 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) {
 		}
 		fmt.Println("PlayerState:")
 		fmt.Println(ps)
+
+	case "GameStateRequest":
+
+		playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
+
+		state := quacks.CreateGameState(playerNames, true)
+
+		b, err := json.Marshal(state)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		msg := types.WSMessage{
+			Type: "NewGameState",
+			Data: b,
+		}
+		// After processing, prepare the response message
+		// newMessage := []byte("A Fresh Gamestate")
+
+		jsonMsg, err := json.Marshal(msg)
+
+		// Send the response message
+		err = s.conn.WriteMessage(websocket.TextMessage, jsonMsg)
+		if err != nil {
+			// handle error
+			fmt.Println("error while sending gamestate:", err)
+			return err
+		}
 	}
 
+	return nil
 }
 
 func newGameServer() actor.Receiver {

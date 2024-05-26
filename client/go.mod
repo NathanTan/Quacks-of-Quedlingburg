@@ -3,6 +3,7 @@ module main
 go 1.21.4
 
 replace types => ../types/
+replace quacks => ../quacks/
 
 require (
 	github.com/gin-gonic/contrib v0.0.0-20240508051311-c1c6bf0061b0
