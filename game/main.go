@@ -112,6 +112,7 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
 		state := quacks.CreateGameState(playerNames, true)
+		state.StartGame()
 
 		b, err := json.Marshal(state)
 		if err != nil {
