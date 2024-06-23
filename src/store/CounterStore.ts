@@ -18,4 +18,4 @@ class CounterStore {
   }
 }
 
-export default new CounterStore()
+export default CounterStore
