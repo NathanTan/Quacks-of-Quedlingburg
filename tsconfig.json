@@ -8,7 +8,6 @@
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
-    "allowSyntheticDefaultImports": true, 
 
     /* Strictness */
     "strict": true,
@@ -28,16 +27,11 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"]
-    },
-
-  // For using typescript with start-react in npm start for dev
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    }
   },
   "include": [
     ".eslintrc.cjs",
     "next-env.d.ts",
-    "/src/index.js",
     "**/*.ts",
     "**/*.tsx",
     "**/*.cjs",

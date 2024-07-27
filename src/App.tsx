@@ -41,7 +41,6 @@ import { useObserver } from 'mobx-react';
 
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import Board2 from './Board2';
 
 interface AppProps {
   CounterStore?: any; // replace with the type of your store
@@ -64,7 +63,6 @@ class App extends React.Component<AppProps> {
       <p>Count: {CounterStore.count}</p>
       <SendMoveButton /><LogButton /><NewGameButton />
       <Board />
-      <Board2 />
       </div>
     );
   }
