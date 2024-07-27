@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { myStore } from './store';
 
 const StyledButton = styled.button`
   background-color: #4CAF50; /* Green */
@@ -41,7 +42,9 @@ const SendMoveButton: React.FC = () => {
       }
 
       const data = await response.json();
+      console.log("data")
       console.log(data);
+      myStore.updateMessage("Updated message " + response.status);
     } catch (error) {
       console.error('Error:', error);
     }

@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"quacks"
+	"strconv"
 	"sync"
 	"time"
 	"types"
@@ -35,8 +36,10 @@ type GameClient struct {
 // }
 
 var (
-	gameStates = make(map[string]*quacks.GameState)
-	mutex      = &sync.Mutex{}
+	gameStates   = make(map[string]*quacks.GameState)
+	playerStates = make(map[string]*types.PlayerState)
+	mutex        = &sync.Mutex{}
+	player_mutex = &sync.Mutex{}
 )
 
 func saveGameState(gameID string, gameState *quacks.GameState) {
@@ -49,9 +52,23 @@ func saveGameState(gameID string, gameState *quacks.GameState) {
 	// db.Save(gameID, gameState)
 }
 
+func savePlayerState(gameID string, playerState *types.PlayerState) {
+	player_mutex.Lock()
+	playerStates[gameID] = playerState
+	player_mutex.Unlock()
+}
+
 func getGameState(gameID string) *quacks.GameState {
 	mutex.Lock()
 	gameState := gameStates[gameID]
+	mutex.Unlock()
+
+	return gameState
+}
+
+func getPlayerState(gameID string) *types.PlayerState {
+	mutex.Lock()
+	gameState := playerStates[gameID]
 	mutex.Unlock()
 
 	return gameState
@@ -63,6 +80,16 @@ func newGameClient(conn *websocket.Conn, username string) *GameClient {
 		username: username,
 		conn:     conn,
 	}
+}
+
+func getPlayerStateFromServer(c *GameClient, playerId int) error {
+	fmt.Println("Sending request to get player state for player ", playerId)
+	msg := types.WSMessage{
+		Type: "PlayerState",
+		Data: nil, // TODO spend player id in json payload
+	}
+
+	return sendMessageToGameServer(c, msg)
 }
 
 func getGameStateFromServer(c *GameClient) error {
@@ -156,6 +183,27 @@ func main() {
 
 	r.GET("/", func(gtinContext *gin.Context) {
 		gtinContext.HTML(http.StatusOK, "index.html", nil) // Serve index.html file on accessing root route
+	})
+
+	r.GET("/requestPlayerState/:id", func(gtinContext *gin.Context) {
+		// Extract the player ID from the route parameter
+		playerID := gtinContext.Param("id")
+		// Convert playerID to the appropriate type if necessary, e.g., to int
+		playerIDInt, err := strconv.Atoi(playerID)
+
+		if err != nil {
+			// Handle error, maybe return an HTTP error response
+			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player ID"})
+			return
+		}
+
+		fmt.Println("Received GET request for player state for player ", playerIDInt)
+
+		getPlayerStateFromServer(c, playerIDInt) // TODO: Get player ID from request
+		data := getPlayerState("game1")
+		if gtinContext != nil {
+			gtinContext.JSON(http.StatusOK, data)
+		}
 	})
 
 	r.POST("/requestState", func(gtinContext *gin.Context) {
@@ -258,8 +306,18 @@ func handleMessage(msg *types.WSMessage) {
 	fmt.Printf("Handling message - type: %s\n", msg.Type)
 	switch msg.Type {
 
-	case "NewGameState":
+	case "PlayerState":
+		var ps types.PlayerState
+		if err := json.Unmarshal(msg.Data, &ps); err != nil {
+			panic(err)
+		}
+		fmt.Println("New PlayerState:")
+		fmt.Println(ps)
 
+		// TODO: Save this by player ID and make the sender send playerId also
+		savePlayerState("game1", &ps)
+
+	case "NewGameState":
 		var state quacks.GameState
 
 		if err := json.Unmarshal(msg.Data, &state); err != nil {

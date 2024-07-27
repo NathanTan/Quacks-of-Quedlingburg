@@ -27,3 +27,7 @@ type PlayerState struct {
 	HP       int `json: "HP"`
 	Position Position
 }
+
+type PlayerStateRequest struct {
+	PlayerId int `json: "playerId"`
+}

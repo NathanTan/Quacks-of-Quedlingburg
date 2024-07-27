@@ -2,7 +2,7 @@
 import { makeAutoObservable } from "mobx";
 
 class Store {
-  message = "Hello, World!";
+  message = "Hello, Store!";
 
   constructor() {
     makeAutoObservable(this);

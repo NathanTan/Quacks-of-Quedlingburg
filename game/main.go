@@ -99,13 +99,20 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		fmt.Printf("Conducted login for id: %d, name: %s\n", s.clientId, s.username)
 
 	case "PlayerState":
-		var ps types.PlayerState
+		// TODO: Recieve the player id here and send for a specific player
+		var ps types.PlayerStateRequest
 
 		if err := json.Unmarshal(msg.Data, &ps); err != nil {
 			panic(err)
 		}
 		fmt.Println("PlayerState:")
 		fmt.Println(ps)
+
+		b, err := json.Marshal(ps)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sendGameState(s, "PlayerState", b)
 
 	case "GameStateRequest":
 
@@ -117,25 +124,31 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		if err != nil {
 			log.Fatal(err)
 		}
+		sendGameState(s, "NewGameState", b)
 
-		msg := types.WSMessage{
-			Type: "NewGameState",
-			Data: b,
-		}
-		// After processing, prepare the response message
-		// newMessage := []byte("A Fresh Gamestate")
+	}
 
-		jsonMsg, err := json.Marshal(msg)
+	return nil
+}
 
-		fmt.Println("Sending Message: " + string(jsonMsg))
+func sendGameState(s *PlayerSession, messageType string, payload []byte) error {
+	msg := types.WSMessage{
+		Type: messageType,
+		Data: payload,
+	}
+	// After processing, prepare the response message
+	// newMessage := []byte("A Fresh Gamestate")
 
-		// Send the response message
-		err = s.conn.WriteMessage(websocket.TextMessage, jsonMsg)
-		if err != nil {
-			// handle error
-			fmt.Println("error while sending gamestate:", err)
-			return err
-		}
+	jsonMsg, err := json.Marshal(msg)
+
+	fmt.Println("Sending Message: " + string(jsonMsg))
+
+	// Send the response message
+	err = s.conn.WriteMessage(websocket.TextMessage, jsonMsg)
+	if err != nil {
+		// handle error
+		fmt.Println("error while sending gamestate:", err)
+		return err
 	}
 
 	return nil
