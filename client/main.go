@@ -325,7 +325,7 @@ func handleMessage(msg *types.WSMessage) {
 		if err := json.Unmarshal(msg.Data, &state); err != nil {
 			panic(err)
 		}
-		fmt.Println("New PlayerState:")
+		fmt.Println("New GameState:")
 		fmt.Println(state)
 
 		saveGameState("game1", &state)

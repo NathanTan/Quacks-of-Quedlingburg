@@ -120,6 +120,7 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 
 		state := quacks.CreateGameState(playerNames, true)
 
+		fmt.Println("New GameState: ", state)
 		b, err := json.Marshal(state)
 		if err != nil {
 			log.Fatal(err)
