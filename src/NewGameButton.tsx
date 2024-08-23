@@ -1,4 +1,6 @@
 import React from 'react';
+import { myStore } from './store';
+
 
 class NewGameButton extends React.Component {
   handleClick = async () => {
@@ -16,10 +18,13 @@ class NewGameButton extends React.Component {
 
     // Log the returned value
     console.log(data);
+
+    myStore.updateState(data);
+    myStore.checkState();
   };
 
   render() {
-    return <button onClick={this.handleClick}>Click me</button>;
+    return <button onClick={this.handleClick}>New Game Button</button>;
   }
 }
 

@@ -217,7 +217,9 @@ func main() {
 	r.POST("/getState", func(gtinContext *gin.Context) {
 		// gtinContext.HTML(http.StatusOK, "index.html", nil) // Serve index.html file on accessing root route
 		// getGameStateFromServer(c.conn)
+		fmt.Println("Get State")
 		data := getGameState("game1")
+		fmt.Println("Gotten State Data: ", data)
 		if gtinContext != nil {
 			gtinContext.JSON(http.StatusOK, data)
 		}
