@@ -18,7 +18,7 @@ type Input struct {
 }
 
 type GameState struct {
-	players     []Player
+	Players     []Player
 	Round       int
 	fortune     int
 	winner      []int
@@ -48,7 +48,7 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		if gs.debug {
 			fmt.Println("Resetting buy flag for all players")
 		}
-		for _, player := range gs.players {
+		for _, player := range gs.Players {
 			player.isDoneDrawing = false
 			player.board.cherryBombValue = 0
 			player.hasCompletedTheFortune = false
@@ -62,7 +62,7 @@ func (gs *GameState) enterState(e *fsm.Event) {
 func (gs GameState) PrintRound() {
 	fmt.Printf("===============\nRound %d\n---------------\n", gs.Round)
 	scores := ""
-	for _, player := range gs.players {
+	for _, player := range gs.Players {
 		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
 	}
 	fmt.Printf("Scores:\n%s\n===============\n", scores)
@@ -96,7 +96,7 @@ func GetTopPlayers(players []Player) []int {
 func (gs *GameState) nextRound(e *fsm.Event) {
 	if gs.Round == 9 {
 		// Assign winners here
-		gs.winner = GetTopPlayers(gs.players)
+		gs.winner = GetTopPlayers(gs.Players)
 		return
 	}
 
@@ -104,19 +104,19 @@ func (gs *GameState) nextRound(e *fsm.Event) {
 
 	fmt.Printf("===============\nStarting Round %d\n---------------\n", gs.Round)
 	scores := ""
-	for _, player := range gs.players {
+	for _, player := range gs.Players {
 		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
 	}
 	fmt.Printf("Scores:\n%s\n===============\n", scores)
 }
 
 func (gs *GameState) GetPlayersByScore() []string {
-	sort.Slice(gs.players, func(i, j int) bool {
-		return gs.players[i].score > gs.players[j].score
+	sort.Slice(gs.Players, func(i, j int) bool {
+		return gs.Players[i].score > gs.Players[j].score
 	})
 
-	playerNames := make([]string, len(gs.players))
-	for i, player := range gs.players {
+	playerNames := make([]string, len(gs.Players))
+	for i, player := range gs.Players {
 		playerNames[i] = player.name
 	}
 
@@ -125,7 +125,7 @@ func (gs *GameState) GetPlayersByScore() []string {
 
 func (gs GameState) GetPlayerNames() []string {
 	names := []string{}
-	for _, player := range gs.players {
+	for _, player := range gs.Players {
 		names = append(names, player.name)
 	}
 	return names
