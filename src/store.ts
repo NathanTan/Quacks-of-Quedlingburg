@@ -1,11 +1,21 @@
 // store.ts
-import { makeAutoObservable } from "mobx";
-import QuacksState from "./interfaces/QuacksState";
+import { makeAutoObservable } from "mobx"
+import QuacksState from "./interfaces/QuacksState"
+import Player from "./interfaces/Player"
 
 class Store {
-  message = "Hello, Store!";
+  message = "Hello, Store!"
   state = {
-  } as QuacksState;
+    players: [],
+    Round: 0,
+    fortune: 0,
+    winner: [],
+    book: 0,
+    bombLimit: 0,
+    Awaiting: null,
+    debug: false,
+  } as QuacksState
+
 
   constructor() {
     makeAutoObservable(this);
@@ -16,7 +26,9 @@ class Store {
   }
 
   updateState(newState: QuacksState) {
-    this.state = newState;
+    this.state = newState
+    console.log("Update state", this.state)
+    console.log("Update new State", newState)
   }
 
   checkState() {
