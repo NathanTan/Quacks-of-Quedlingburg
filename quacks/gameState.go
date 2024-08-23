@@ -50,7 +50,7 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		}
 		for _, player := range gs.Players {
 			player.isDoneDrawing = false
-			player.board.cherryBombValue = 0
+			player.Board.CherryBombValue = 0
 			player.hasCompletedTheFortune = false
 			player.hasSpentRubies = false
 		}
@@ -63,7 +63,7 @@ func (gs GameState) PrintRound() {
 	fmt.Printf("===============\nRound %d\n---------------\n", gs.Round)
 	scores := ""
 	for _, player := range gs.Players {
-		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
+		scores = scores + fmt.Sprintf("%s - %d\n", player.Name, player.score)
 	}
 	fmt.Printf("Scores:\n%s\n===============\n", scores)
 
@@ -105,7 +105,7 @@ func (gs *GameState) nextRound(e *fsm.Event) {
 	fmt.Printf("===============\nStarting Round %d\n---------------\n", gs.Round)
 	scores := ""
 	for _, player := range gs.Players {
-		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
+		scores = scores + fmt.Sprintf("%s - %d\n", player.Name, player.score)
 	}
 	fmt.Printf("Scores:\n%s\n===============\n", scores)
 }
@@ -117,7 +117,7 @@ func (gs *GameState) GetPlayersByScore() []string {
 
 	playerNames := make([]string, len(gs.Players))
 	for i, player := range gs.Players {
-		playerNames[i] = player.name
+		playerNames[i] = player.Name
 	}
 
 	return playerNames
@@ -126,7 +126,7 @@ func (gs *GameState) GetPlayersByScore() []string {
 func (gs GameState) GetPlayerNames() []string {
 	names := []string{}
 	for _, player := range gs.Players {
-		names = append(names, player.name)
+		names = append(names, player.Name)
 	}
 	return names
 }

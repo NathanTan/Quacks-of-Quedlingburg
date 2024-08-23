@@ -8,11 +8,11 @@ import (
 func (gs *GameState) DrawChip(playerName string) {
 	if gs.FSM.Current() == PreparationState.String() {
 		for i, player := range gs.Players {
-			if player.name == playerName {
+			if player.Name == playerName {
 				// Stop when they player's post has exploded
 				if !player.IsDoneDrawing(7) {
 					pullAndPlaceChip(&gs.Players[i], gs.debug)
-					fmt.Printf("Cherry Bomb value is now now now %d\n", player.board.cherryBombValue)
+					fmt.Printf("Cherry Bomb value is now now now %d\n", player.Board.CherryBombValue)
 					fmt.Printf("Remaining Chips for '%s': %d\n", playerName, len(player.bag.RemainingChips))
 
 				}
@@ -31,7 +31,7 @@ func (gs *GameState) DrawChip(playerName string) {
 }
 
 func (gs *GameState) GetPlayerName(position int) string {
-	return gs.Players[position].name
+	return gs.Players[position].Name
 }
 func (gs *GameState) Input(input Input) Error {
 	if gs.FSM.Current() == HandleFortune.String() {
@@ -55,7 +55,7 @@ func (gs *GameState) Input(input Input) Error {
 		if input.Choice == 2 {
 			gs.Players[input.Player].isDoneDrawing = true
 			if gs.debug {
-				fmt.Printf("Player '%s' is done drawing %t", gs.Players[input.Player].name, gs.Players[input.Player].isDoneDrawing)
+				fmt.Printf("Player '%s' is done drawing %t", gs.Players[input.Player].Name, gs.Players[input.Player].isDoneDrawing)
 			}
 		}
 
@@ -66,7 +66,7 @@ func (gs *GameState) Input(input Input) Error {
 		playerNumber := input.Player
 
 		// Quick validation to prevent buying 2 chips
-		if len(input.Choice2) == 2 && input.Choice2[0].color == input.Choice2[1].color {
+		if len(input.Choice2) == 2 && input.Choice2[0].Color == input.Choice2[1].Color {
 			return Error{
 				Description: "Error: Cannot buy 2 of the same type of chip",
 			}
@@ -81,10 +81,10 @@ func (gs *GameState) Input(input Input) Error {
 			}
 		}
 
-		buyingPower, _ := GetScores(gs.Players[playerNumber].board)
+		buyingPower, _ := GetScores(gs.Players[playerNumber].Board)
 		gs.Players[playerNumber].buyingPower = buyingPower
 
-		fmt.Printf("Buying power for %s - %d\n", gs.Players[playerNumber].name, buyingPower)
+		fmt.Printf("Buying power for %s - %d\n", gs.Players[playerNumber].Name, buyingPower)
 
 		chipsCostMap := GetChipsValueMap(gs.book)
 
@@ -95,7 +95,7 @@ func (gs *GameState) Input(input Input) Error {
 		totalCost := 0
 
 		for _, chip := range input.Choice2 {
-			totalCost += totalCost + chipsCostMap[chip.color+fmt.Sprintf("%d", chip.value)]
+			totalCost += totalCost + chipsCostMap[chip.Color+fmt.Sprintf("%d", chip.Value)]
 		}
 
 		fmt.Printf("Total desired chip cost: %d\n", totalCost)
@@ -104,7 +104,7 @@ func (gs *GameState) Input(input Input) Error {
 			for _, chip := range input.Choice2 {
 				gs.Players[playerNumber].bag.AddChip(chip)
 				if gs.debug {
-					fmt.Printf("Player '%s' bought a chip: %s\n", gs.Players[playerNumber].name, chip.String())
+					fmt.Printf("Player '%s' bought a chip: %s\n", gs.Players[playerNumber].Name, chip.String())
 				}
 			}
 		}
@@ -169,22 +169,22 @@ func (gs *GameState) Input(input Input) Error {
 		// Spend the rubies
 		if player.rubyCount >= 2 && !player.hasSpentRubies {
 
-			fmt.Printf("Spending rubies for player %s, choice: %d\n", gs.Players[playerNumber].name, input.Choice)
+			fmt.Printf("Spending rubies for player %s, choice: %d\n", gs.Players[playerNumber].Name, input.Choice)
 
 			// Move the dropper
 			if input.Choice == 1 {
 				player.moveDropper(1, 1)
-				fmt.Printf("DROPPER: Player %s ruby count: %d, dropper value: %d\n", gs.Players[playerNumber].name, gs.Players[playerNumber].rubyCount, gs.Players[playerNumber].dropplet)
+				fmt.Printf("DROPPER: Player %s ruby count: %d, dropper value: %d\n", gs.Players[playerNumber].Name, gs.Players[playerNumber].rubyCount, gs.Players[playerNumber].dropplet)
 				gs.Players[playerNumber].rubyCount -= 2
 				gs.Players[playerNumber].dropplet += 1
-				fmt.Printf("'DROPPER': Player %s ruby count: %d, dropper value: %d\n", gs.Players[playerNumber].name, gs.Players[playerNumber].rubyCount, gs.Players[playerNumber].dropplet)
+				fmt.Printf("'DROPPER': Player %s ruby count: %d, dropper value: %d\n", gs.Players[playerNumber].Name, gs.Players[playerNumber].rubyCount, gs.Players[playerNumber].dropplet)
 			} else if input.Choice == 2 {
 				if !player.flask {
 					player.flask = true
-					fmt.Printf("FLASK: Player %s ruby count: %d", gs.Players[playerNumber].name, gs.Players[playerNumber].rubyCount)
+					fmt.Printf("FLASK: Player %s ruby count: %d", gs.Players[playerNumber].Name, gs.Players[playerNumber].rubyCount)
 					gs.Players[playerNumber].rubyCount -= 2
 					gs.Players[playerNumber].flask = true
-					fmt.Printf("FLASK: Player %s ruby count: %d", gs.Players[playerNumber].name, gs.Players[playerNumber].rubyCount)
+					fmt.Printf("FLASK: Player %s ruby count: %d", gs.Players[playerNumber].Name, gs.Players[playerNumber].rubyCount)
 
 				}
 			} else {
@@ -193,7 +193,7 @@ func (gs *GameState) Input(input Input) Error {
 
 		} else {
 			if gs.debug {
-				fmt.Printf("Player %s doesn't have enough rubies to spend\n", player.name)
+				fmt.Printf("Player %s doesn't have enough rubies to spend\n", player.Name)
 			}
 			gs.Players[playerNumber].hasSpentRubies = true
 			// gs.Awaiting.Player += 1
@@ -265,8 +265,8 @@ func (gs *GameState) ResumePlay() {
 
 		// Reset the player's board before assigning chips begins
 		for i := range gs.Players {
-			if gs.Players[i].board.nextPosition == -1 {
-				gs.Players[i].board.nextPosition = 0
+			if gs.Players[i].Board.NextPosition == -1 {
+				gs.Players[i].Board.NextPosition = 0
 			}
 		}
 
@@ -283,7 +283,7 @@ func (gs *GameState) ResumePlay() {
 		playersAreDone := true
 		for i := range gs.Players {
 			// if gs.debug {
-			// 	fmt.Printf("Player '%s' is done drawing chips - %t\n", gs.Players[i].name, gs.Players[i].IsDoneDrawing(gs.bombLimit))
+			// 	fmt.Printf("Player '%s' is done drawing chips - %t\n", gs.Players[i].Name, gs.Players[i].IsDoneDrawing(gs.bombLimit))
 			// }
 			playersAreDone = playersAreDone && gs.Players[i].IsDoneDrawing(gs.bombLimit)
 		}
@@ -305,7 +305,7 @@ func (gs *GameState) ResumePlay() {
 			// If the player exploaded, ask for VP or buying
 			if gs.Players[i].PlayersPotHasExploaded() {
 				gs.Awaiting = &Input{
-					Description: fmt.Sprintf("Player %s has exploded their pot, please select from the options:\n\t1: Buy Chips\n\t2: Gain Victory Points", gs.Players[i].name),
+					Description: fmt.Sprintf("Player %s has exploded their pot, please select from the options:\n\t1: Buy Chips\n\t2: Gain Victory Points", gs.Players[i].Name),
 					Choice:      -1,
 					Player:      i,
 					Code:        getInputCodes()["VPOrBuying"],
@@ -369,7 +369,7 @@ func (gs *GameState) ResumePlay() {
 			if !player.PlayersPotHasExploaded() || player.chooseBuying {
 				player.score += player.buyingPower
 				if gs.debug {
-					fmt.Printf("Increase player '%s' score by %d to '%d'", player.name, player.buyingPower, player.score)
+					fmt.Printf("Increase player '%s' score by %d to '%d'", player.Name, player.buyingPower, player.score)
 				}
 			}
 		} else if gs.Awaiting.Player < len(gs.Players) {
@@ -451,16 +451,16 @@ func pullAndPlaceChip(player *Player, debug bool) {
 	chip := DrawChip(&(player.bag), debug)
 
 	// No chip was pulled
-	if chip.value == 0 {
+	if chip.Value == 0 {
 		return
 	}
 
-	player.board.placeChip(chip)
-	fmt.Printf("Cherry Bomb value is now now %d\n", player.board.cherryBombValue)
+	player.Board.placeChip(chip)
+	fmt.Printf("Cherry Bomb value is now now %d\n", player.Board.CherryBombValue)
 
 	if debug {
-		fmt.Printf("Player %s draws a %s %d chip\n", player.name, chip.color, chip.value)
-		fmt.Printf("Pot: %s\n", player.board.toString())
+		fmt.Printf("Player %s draws a %s %d chip\n", player.Name, chip.Color, chip.Value)
+		fmt.Printf("Pot: %s\n", player.Board.toString())
 		fmt.Printf("RemainingChips: %s\n", player.bag.RemainingChips)
 		fmt.Printf("All Chips: %s\n", player.bag.Chips)
 	}
@@ -513,7 +513,7 @@ func (gs GameState) GetRemainingPullingPlayerNames() []string {
 		names := []string{}
 		for _, player := range gs.Players {
 			if !player.isDoneDrawing {
-				names = append(names, player.name)
+				names = append(names, player.Name)
 			}
 		}
 		return names
@@ -526,10 +526,10 @@ func (gs GameState) GetRemainingRubySpendingPlayerNames() []string {
 		names := []string{}
 		for _, player := range gs.Players {
 			if gs.debug {
-				fmt.Printf("%s - ruby count: %d\n", player.name, player.rubyCount)
+				fmt.Printf("%s - ruby count: %d\n", player.Name, player.rubyCount)
 			}
 			if !player.hasSpentRubies && player.rubyCount >= 2 {
-				names = append(names, player.name)
+				names = append(names, player.Name)
 			}
 		}
 		return names
@@ -543,7 +543,7 @@ func (gs GameState) GetRemainingBuyingPlayers() []string {
 		names := []string{}
 		for _, player := range gs.Players {
 			if !player.isDoneDrawing {
-				names = append(names, player.name)
+				names = append(names, player.Name)
 			}
 		}
 		return names
@@ -556,7 +556,7 @@ func (gs GameState) GetRemainingFortunePlayers() []string {
 		names := []string{}
 		for _, player := range gs.Players {
 			if !player.hasCompletedTheFortune {
-				names = append(names, player.name)
+				names = append(names, player.Name)
 			}
 		}
 		return names
@@ -566,7 +566,7 @@ func (gs GameState) GetRemainingFortunePlayers() []string {
 
 func (gs GameState) GetPlayerPosition(name string) int {
 	for i, player := range gs.Players {
-		if player.name == name {
+		if player.Name == name {
 			return i
 		}
 	}
@@ -576,8 +576,8 @@ func (gs GameState) GetPlayerPosition(name string) int {
 
 func (gs GameState) GetPlayerBombCountByName(name string) int {
 	for _, player := range gs.Players {
-		if player.name == name {
-			return player.board.getCherryBombValue()
+		if player.Name == name {
+			return player.Board.getCherryBombValue()
 		}
 	}
 
@@ -586,7 +586,7 @@ func (gs GameState) GetPlayerBombCountByName(name string) int {
 
 func (gs GameState) GetPlayerByName(name string) Player {
 	for _, player := range gs.Players {
-		if player.name == name {
+		if player.Name == name {
 			return player
 		}
 	}
@@ -597,7 +597,7 @@ func (gs GameState) GetPlayerByName(name string) Player {
 func (gs GameState) GetPlayerPositionByName(name string) int {
 	pos := -1
 	for i, player := range gs.Players {
-		if player.name == name {
+		if player.Name == name {
 			pos = i
 		}
 	}
@@ -692,7 +692,7 @@ func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 
 func handleRubies(players *[]Player, debug bool) {
 	for i := 0; i < len(*players); i++ {
-		rubyCount := AssignRubies((*players)[i].board)
+		rubyCount := AssignRubies((*players)[i].Board)
 		if rubyCount {
 			(*players)[i].rubyCount = (*players)[i].rubyCount + 1
 		}
@@ -703,11 +703,11 @@ func handleVictoryPoints(gs *GameState, debug bool) {
 	players := gs.Players
 	for i := range players {
 		// If the pot didn't boil over or if it did and they chose scoring
-		if players[i].board.cherryBombValue <= players[i].explosionLimit || players[i].chooseVictoryPoints {
+		if players[i].Board.CherryBombValue <= players[i].explosionLimit || players[i].chooseVictoryPoints {
 			if debug {
-				fmt.Printf("DEBUG: Assigning VPs to '%s'\n", players[i].name)
+				fmt.Printf("DEBUG: Assigning VPs to '%s'\n", players[i].Name)
 			}
-			_, victoryPointsEarned := GetScores(players[i].board)
+			_, victoryPointsEarned := GetScores(players[i].Board)
 			players[i].score = players[i].score + victoryPointsEarned
 		}
 	}
@@ -729,7 +729,7 @@ func assignRatTails(players *[]Player, debug bool) {
 	}
 
 	// if debug {
-	// 	fmt.Printf("highestScorePlayer: %s, score: %d\n", highestScorePlayer.name, highestScorePlayer.score)
+	// 	fmt.Printf("highestScorePlayer: %s, score: %d\n", highestScorePlayer.Name, highestScorePlayer.score)
 	// }
 
 	for i := 0; i < len((*players)); i++ {
@@ -740,11 +740,11 @@ func assignRatTails(players *[]Player, debug bool) {
 		ratTailCount := countRatTails(leftPlayer.score, rightPlayer.score)
 		// if debug {
 		// 	fmt.Printf("Player number: %d\nleftPlayer: %s, score: %d\nrightPlayer: %s, score: %d\nRat Tail Count: %d\n",
-		// 		player, leftPlayer.name, leftPlayer.score, rightPlayer.name, rightPlayer.score, ratTailCount)
+		// 		player, leftPlayer.Name, leftPlayer.score, rightPlayer.Name, rightPlayer.score, ratTailCount)
 		// }
 		(*players)[player].ratToken = ratTailCount
 		if debug {
-			fmt.Printf("Player %q rat tail count: %d\n", leftPlayer.name, ratTailCount)
+			fmt.Printf("Player %q rat tail count: %d\n", leftPlayer.Name, ratTailCount)
 		}
 	}
 }
@@ -758,7 +758,7 @@ func getOtherPlayerPosition(players []Player, counter int) int {
 
 func (gs *GameState) getPlayerPosition(name string) int {
 	for i, player := range gs.Players {
-		if player.name == name {
+		if player.Name == name {
 			return i
 		}
 	}
@@ -798,7 +798,7 @@ func handleSpecialChips(players *[]Player, book int, debug bool) {
 
 	// Count all the moths
 	for _, player := range *players {
-		playerMothCounts = append(playerMothCounts, GetChipCount(player.board, "black", debug))
+		playerMothCounts = append(playerMothCounts, GetChipCount(player.Board, "black", debug))
 	}
 
 	if len(*players) > 2 {
@@ -831,26 +831,26 @@ func handleSpecialChips(players *[]Player, book int, debug bool) {
 	}
 
 	if debug {
-		fmt.Printf("player board: %s\n", (*players)[0].board.toString())
-		fmt.Printf("player board: %s\n", (*players)[1].board.toString())
-		fmt.Printf("player board: %s\n", (*players)[2].board.toString())
-		fmt.Printf("player board: %s\n", (*players)[3].board.toString())
+		fmt.Printf("player board: %s\n", (*players)[0].Board.toString())
+		fmt.Printf("player board: %s\n", (*players)[1].Board.toString())
+		fmt.Printf("player board: %s\n", (*players)[2].Board.toString())
+		fmt.Printf("player board: %s\n", (*players)[3].Board.toString())
 	}
 
 	if book == 1 {
 		for i := range *players {
 			player := (*players)[i]
 			// Handle Spiders
-			chips := player.board.chips
+			chips := player.Board.Chips
 
 			// If the last or second to last chip is a spider
-			if chips[len(chips)-1].color == Green.String() || chips[len(chips)-2].color == Green.String() {
+			if chips[len(chips)-1].Color == Green.String() || chips[len(chips)-2].Color == Green.String() {
 				// Give the player a ruby
 				player.rubyCount = player.rubyCount + 1
 			}
 
 			// Handle Ghosts
-			ghostCount := GetChipCount(player.board, Purple.String(), debug)
+			ghostCount := GetChipCount(player.Board, Purple.String(), debug)
 			if ghostCount == 1 {
 				player.score = player.score + 1
 			} else if ghostCount == 2 {

@@ -5,9 +5,9 @@ import (
 )
 
 type Player struct {
-	name                   string
+	Name                   string
 	bag                    Bag
-	board                  Board
+	Board                  Board
 	isDoneDrawing          bool
 	hasCompletedTheFortune bool
 	hasSpentRubies         bool
@@ -28,9 +28,9 @@ func (player Player) IsDoneDrawing(bombLimit int) bool {
 		return true
 	}
 
-	fmt.Printf("Player name: %s, CherryBombValue: %d, Limit: %d\n", player.name, player.board.cherryBombValue, bombLimit)
+	fmt.Printf("Player name: %s, CherryBombValue: %d, Limit: %d\n", player.Name, player.Board.CherryBombValue, bombLimit)
 
-	if player.board.cherryBombValue > bombLimit {
+	if player.Board.CherryBombValue > bombLimit {
 		return true
 	}
 
@@ -50,13 +50,13 @@ func (p *Player) moveDropper(amount int, choice int) {
 }
 
 func (p Player) PlayersPotHasExploaded() bool {
-	return p.board.cherryBombValue > p.explosionLimit
+	return p.Board.CherryBombValue > p.explosionLimit
 }
 
 func PrintPlayerStatuses(player Player) {
-	fmt.Printf("Player '%s':\n", player.name)
+	fmt.Printf("Player '%s':\n", player.Name)
 	fmt.Printf("\tScore - %d\n", player.score)
-	fmt.Printf("\tCherry Bomb Count - %d\n", player.board.cherryBombValue)
+	fmt.Printf("\tCherry Bomb Count - %d\n", player.Board.CherryBombValue)
 	fmt.Printf("\tRuby Count - %d\n", player.rubyCount)
 	fmt.Printf("\tOwned Chips - %s\n\n", ChipsString(player.bag.Chips))
 	fmt.Printf("\tDropper Position - %d\n", player.dropplet)
@@ -101,10 +101,10 @@ func CreateNewPlayer(name string) Player {
 			},
 		},
 		Board{
-			chips:            nil,
-			nextPosition:     -1,
-			testTubePosition: 0,
-			cherryBombValue:  0,
+			Chips:            nil,
+			NextPosition:     -1,
+			TestTubePosition: 0,
+			CherryBombValue:  0,
 		},
 		false,
 		false,

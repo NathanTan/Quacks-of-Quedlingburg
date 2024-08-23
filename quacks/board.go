@@ -3,10 +3,10 @@ package quacks
 import "fmt"
 
 type Board struct {
-	chips            []Chip
-	nextPosition     int
-	testTubePosition int
-	cherryBombValue  int
+	Chips            []Chip
+	NextPosition     int
+	TestTubePosition int
+	CherryBombValue  int
 }
 
 type Slot struct {
@@ -46,7 +46,7 @@ func getStandardBoard() []Slot {
 }
 
 func SetUpBoard(droppletPosition int, ratTailCount int) Board {
-	board := Board{nextPosition: droppletPosition + ratTailCount + 1}
+	board := Board{NextPosition: droppletPosition + ratTailCount + 1}
 
 	return board
 }
@@ -54,21 +54,21 @@ func SetUpBoard(droppletPosition int, ratTailCount int) Board {
 // Buying Points and Victory Points.
 func GetScores(board Board) (int, int) {
 	standardBoard := getStandardBoard()
-	buyingPoints := standardBoard[board.nextPosition].pointValue
-	victoryPoints := standardBoard[board.nextPosition].vpPointValue
+	buyingPoints := standardBoard[board.NextPosition].pointValue
+	victoryPoints := standardBoard[board.NextPosition].vpPointValue
 	return buyingPoints, victoryPoints
 }
 
 func AssignRubies(board Board) bool {
 	standardBoard := getStandardBoard()
-	rubys := standardBoard[board.nextPosition].hasRuby
+	rubys := standardBoard[board.NextPosition].hasRuby
 	return rubys
 }
 
 func GetChipCount(board Board, _type string, debug bool) int {
 	count := 0
-	for _, chip := range board.chips {
-		if chip.color == _type {
+	for _, chip := range board.Chips {
+		if chip.Color == _type {
 			count = count + 1
 		}
 	}
@@ -78,23 +78,23 @@ func GetChipCount(board Board, _type string, debug bool) int {
 
 func (b Board) toString() string {
 	s := ""
-	for _, c := range b.chips {
-		s += fmt.Sprintf("%s %d, ", c.color, c.value)
+	for _, c := range b.Chips {
+		s += fmt.Sprintf("%s %d, ", c.Color, c.Value)
 	}
 	return s
 }
 
 func (b *Board) placeChip(chip Chip) {
-	if chip.color == White.String() {
-		fmt.Printf("Cherry Bomb value was %d\n", b.cherryBombValue)
-		b.cherryBombValue = b.cherryBombValue + chip.value
-		fmt.Printf("Cherry Bomb value is now %d\n", b.cherryBombValue)
+	if chip.Color == White.String() {
+		fmt.Printf("Cherry Bomb value was %d\n", b.CherryBombValue)
+		b.CherryBombValue = b.CherryBombValue + chip.Value
+		fmt.Printf("Cherry Bomb value is now %d\n", b.CherryBombValue)
 	}
-	b.chips = append(b.chips, chip)
-	b.nextPosition = b.nextPosition + 1
+	b.Chips = append(b.Chips, chip)
+	b.NextPosition = b.NextPosition + 1
 
 }
 
 func (b Board) getCherryBombValue() int {
-	return b.cherryBombValue
+	return b.CherryBombValue
 }

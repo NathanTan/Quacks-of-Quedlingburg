@@ -3,12 +3,12 @@ package quacks
 import "fmt"
 
 type Chip struct {
-	color string
-	value int
+	Color string
+	Value int
 }
 
 func NewChip(color string, value int) Chip {
-	return Chip{color: color, value: value}
+	return Chip{Color: color, Value: value}
 }
 
 type ChipType int
@@ -98,7 +98,7 @@ func GetChipsValueMap(book int) map[string]int {
 }
 
 func (c Chip) String() string {
-	return fmt.Sprintf("%s_%d", c.color, c.value)
+	return fmt.Sprintf("%s_%d", c.Color, c.Value)
 }
 
 func ChipsString(chips []Chip) string {

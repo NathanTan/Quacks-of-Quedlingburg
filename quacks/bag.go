@@ -15,7 +15,7 @@ func (bag *Bag) AddChip(chip Chip) {
 
 func DrawChip(bag *Bag, debug bool) Chip {
 	if len(bag.RemainingChips) == 0 {
-		return Chip{value: 0, color: ""}
+		return Chip{Value: 0, Color: ""}
 	}
 
 	slice := bag.RemainingChips
@@ -35,7 +35,7 @@ func DrawChip(bag *Bag, debug bool) Chip {
 
 func (bag *Bag) RemoveChip(chip Chip) {
 	for i := 0; i < len(bag.RemainingChips); i++ {
-		if bag.RemainingChips[i].value == chip.value && bag.RemainingChips[i].color == chip.color {
+		if bag.RemainingChips[i].Value == chip.Value && bag.RemainingChips[i].Color == chip.Color {
 			// Remove the element at index i from people.
 			bag.RemainingChips = append(bag.RemainingChips[:i], bag.RemainingChips[i+1:]...)
 			i-- // Decrement i since we just removed an element.
@@ -46,7 +46,7 @@ func (bag *Bag) RemoveChip(chip Chip) {
 
 func (bag *Bag) DeleteChip(chip Chip) {
 	for i := 0; i < len(bag.Chips); i++ {
-		if bag.Chips[i].value == chip.value && bag.Chips[i].color == chip.color {
+		if bag.Chips[i].Value == chip.Value && bag.Chips[i].Color == chip.Color {
 			// Remove the element at index i from people.
 			bag.Chips = append(bag.Chips[:i], bag.Chips[i+1:]...)
 			i-- // Decrement i since we just removed an element.
