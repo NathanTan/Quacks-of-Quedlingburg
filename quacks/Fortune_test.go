@@ -8,7 +8,7 @@ import (
 func TestFortune4(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	// Set up the fortune deck for the test
 	gs.fortuneDeck = append(gs.fortuneDeck, Fortune{
@@ -43,7 +43,7 @@ func TestFortune4(t *testing.T) {
 func TestFortune5(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	// Set up the fortune deck for the test
 	gs.fortuneDeck = append(gs.fortuneDeck, Fortune{

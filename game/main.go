@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"quacks"
+	"sync"
 	"types"
 
 	"github.com/anthdm/hollywood/actor"
@@ -32,6 +33,13 @@ type GameServer struct {
 	sessions map[*actor.PID]struct{}
 }
 
+var (
+	gameStates   = make(map[string]*quacks.GameState)
+	playerStates = make(map[string]*types.PlayerState)
+	mutex        = &sync.Mutex{}
+	player_mutex = &sync.Mutex{}
+)
+
 func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 	fmt.Printf("Creating new player session for %d\n", sid)
 	return func() actor.Receiver {
@@ -43,6 +51,38 @@ func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 			inLobby:   true,
 		}
 	}
+}
+
+func saveGameState(gameID string, gameState *quacks.GameState) {
+	mutex.Lock()
+	gameStates[gameID] = gameState
+	mutex.Unlock()
+
+	// Save the game state to the database
+	// This is a placeholder. Replace with your actual database saving code.
+	// db.Save(gameID, gameState)
+}
+
+func savePlayerState(gameID string, playerState *types.PlayerState) {
+	player_mutex.Lock()
+	playerStates[gameID] = playerState
+	player_mutex.Unlock()
+}
+
+func getGameState(gameID string) *quacks.GameState {
+	mutex.Lock()
+	gameState := gameStates[gameID]
+	mutex.Unlock()
+
+	return gameState
+}
+
+func getPlayerState(gameID string) *types.PlayerState {
+	mutex.Lock()
+	gameState := playerStates[gameID]
+	mutex.Unlock()
+
+	return gameState
 }
 
 func (s *PlayerSession) Receive(c *actor.Context) {
@@ -98,6 +138,33 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		s.username = loginMsg.Username
 		fmt.Printf("Conducted login for id: %d, name: %s\n", s.clientId, s.username)
 
+	case "PlayerMove":
+		var pm types.PlayerMove
+
+		if err := json.Unmarshal(msg.Data, &pm); err != nil {
+			panic(err)
+		}
+
+		fmt.Println("Recieved player move: ", pm)
+
+		state := getGameState(pm.GameId)
+		if pm.Move == "StartGame" {
+			fmt.Println("Starting game")
+			state.StartGame()
+		} else {
+			fmt.Println("Move not yet implemented")
+		}
+		state.Status = state.FSM.Current()
+
+		fmt.Println("New state: ", state.FSM.Current())
+		saveGameState("game123", state)
+
+		b, err := json.Marshal(state)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sendGameState(s, "GameState", b)
+
 	case "PlayerState":
 		// TODO: Recieve the player id here and send for a specific player
 		var ps types.PlayerStateRequest
@@ -114,18 +181,62 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		}
 		sendGameState(s, "PlayerState", b)
 
-	case "GameStateRequest":
+	case "NewGameStateRequest":
 
-		playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
+		var gs types.NewGameStateRequest
 
-		state := quacks.CreateGameState(playerNames, true)
+		if err := json.Unmarshal(msg.Data, &gs); err != nil {
+			panic(err)
+		}
+		playerNames := gs.PlayerNames
 
+		state := quacks.CreateGameState(playerNames, "game123", true)
+		state.Status = state.FSM.Current()
+
+		saveGameState("game123", state)
+
+		fmt.Println("Created new game - state: ", state.FSM.Current())
 		fmt.Println("New GameState: ", state)
 		b, err := json.Marshal(state)
 		if err != nil {
 			log.Fatal(err)
 		}
 		sendGameState(s, "NewGameState", b)
+
+	case "GameStateRequest":
+
+		var gs types.GameStateRequest
+
+		if err := json.Unmarshal(msg.Data, &gs); err != nil {
+			panic(err)
+		}
+
+		state := getGameState(gs.GameId)
+		state.Status = state.FSM.Current()
+
+		fmt.Println("Retriving GameState: ", state)
+		b, err := json.Marshal(state)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sendGameState(s, "GameState", b)
+
+	case "StartGame":
+		var gs types.GameStateRequest
+		if err := json.Unmarshal(msg.Data, &gs); err != nil {
+			panic(err)
+		}
+		state := getGameState(gs.GameId)
+		state.StartGame()
+		state.Status = state.FSM.Current()
+
+		fmt.Println("Starting game ", gs.GameId, " state: ", state.FSM.Current())
+
+		b, err := json.Marshal(state)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sendGameState(s, "GameState", b)
 
 	}
 
@@ -137,8 +248,6 @@ func sendGameState(s *PlayerSession, messageType string, payload []byte) error {
 		Type: messageType,
 		Data: payload,
 	}
-	// After processing, prepare the response message
-	// newMessage := []byte("A Fresh Gamestate")
 
 	jsonMsg, err := json.Marshal(msg)
 

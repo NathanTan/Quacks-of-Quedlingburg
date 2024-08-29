@@ -19,21 +19,11 @@ import (
 
 const wsServerEndpoint = "ws://localhost:40000/ws"
 
-// func (c *GameClient) Connect() error {
-// 	c.conn
-// }
-
-//=======================
-
 type GameClient struct {
 	clientId int
 	username string
 	conn     *websocket.Conn
 }
-
-// type GameState struct {
-// 	state string
-// }
 
 var (
 	gameStates   = make(map[string]*quacks.GameState)
@@ -92,11 +82,38 @@ func getPlayerStateFromServer(c *GameClient, playerId int) error {
 	return sendMessageToGameServer(c, msg)
 }
 
-func getGameStateFromServer(c *GameClient) error {
+func createNewGameStateFromServer(c *GameClient, gameId string) error {
+	fmt.Println("Sending request to create a new game state")
+
+	b, err := json.Marshal(types.NewGameStateRequest{
+		AuthToken:   "123",
+		PlayerNames: []string{"Nathan", "Leah", "Raymond", "Hannah"},
+	})
+
+	if err != nil {
+		return err
+	}
+	msg := types.WSMessage{
+		Type: "NewGameStateRequest",
+		Data: b,
+	}
+
+	return sendMessageToGameServer(c, msg)
+}
+
+func getGameStateFromServer(c *GameClient, gameId string) error {
 	fmt.Println("Sending request to get game state")
+
+	b, err := json.Marshal(types.GameStateRequest{
+		AuthToken: "123",
+		GameId:    gameId,
+	})
+	if err != nil {
+		return err
+	}
 	msg := types.WSMessage{
 		Type: "GameStateRequest",
-		Data: nil,
+		Data: b,
 	}
 
 	return sendMessageToGameServer(c, msg)
@@ -208,17 +225,17 @@ func main() {
 
 	r.POST("/requestState", func(gtinContext *gin.Context) {
 		// gtinContext.HTML(http.StatusOK, "index.html", nil) // Serve index.html file on accessing root route
-		getGameStateFromServer(c)
+		createNewGameStateFromServer(c, "123")
 		// if gtinContext != nil {
 		// 	gtinContext.JSON(http.StatusOK, data)
 		// }
 	})
 
-	r.POST("/getState", func(gtinContext *gin.Context) {
-		// gtinContext.HTML(http.StatusOK, "index.html", nil) // Serve index.html file on accessing root route
-		// getGameStateFromServer(c.conn)
-		fmt.Println("Get State")
-		data := getGameState("game1")
+	r.POST("/getState/:id", func(gtinContext *gin.Context) {
+		gameId := gtinContext.Param("id")
+
+		fmt.Println("Get State for Game: ", gameId)
+		data := getGameState(gameId)
 		fmt.Println("Gotten State Data: ", data)
 		if gtinContext != nil {
 			gtinContext.JSON(http.StatusOK, data)
@@ -227,7 +244,21 @@ func main() {
 
 	r.POST("/move", func(gtinContext *gin.Context) {
 		fmt.Println("Move received")
-		sendGameMove(conn)
+
+		var playerMove types.PlayerMove
+		if err := gtinContext.BindJSON(&playerMove); err != nil {
+			// Handle error, maybe return a bad request status to the client
+			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		fmt.Println("Player Move: ", playerMove)
+
+		playerMove.AuthToken = "123"
+		playerMove.GameId = "game123"
+		playerMove.PlayerId = 1
+
+		sendGameMove(conn, playerMove)
 
 	})
 
@@ -242,29 +273,24 @@ func main() {
 
 }
 
-func sendGameMove(conn *websocket.Conn) {
+func sendGameMove(conn *websocket.Conn, move types.PlayerMove) {
 	fmt.Println("Sending move")
-	for i := 0; i < 5; i++ {
-		state := types.PlayerState{
-			HP:       100,
-			Position: types.Position{X: 5, Y: i}}
 
-		b, err := json.Marshal(state)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		msg := types.WSMessage{
-			Type: "PlayerState",
-			Data: b,
-		}
-
-		// fmt.Println("Sending state")
-		if err := conn.WriteJSON(msg); err != nil {
-			log.Fatal(err)
-		}
-		time.Sleep(time.Millisecond * 60 * 10 * 4)
+	b, err := json.Marshal(move)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	msg := types.WSMessage{
+		Type: "PlayerMove",
+		Data: b,
+	}
+
+	if err := conn.WriteJSON(msg); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(time.Millisecond * 5)
+
 }
 
 func readLoop(c *GameClient) {
@@ -285,10 +311,6 @@ func readLoop(c *GameClient) {
 			return
 		}
 
-		// fmt.Println("Handle Message")
-		// fmt.Println(msg)
-		// fmt.Println(messageType)
-		// fmt.Println(p)
 		var receivedMsg types.WSMessage
 
 		err = json.Unmarshal(payload, &receivedMsg)
@@ -298,7 +320,6 @@ func readLoop(c *GameClient) {
 			fmt.Println(msg)
 			return
 		}
-		fmt.Println("Unmarshaled payload")
 		fmt.Println(receivedMsg.Type)
 		go handleMessage(&receivedMsg)
 	}
@@ -320,14 +341,25 @@ func handleMessage(msg *types.WSMessage) {
 		savePlayerState("game1", &ps)
 
 	case "NewGameState":
-		var state quacks.GameState
+		fmt.Println("Requesting New Game State")
+		receiveGameState(msg)
 
-		if err := json.Unmarshal(msg.Data, &state); err != nil {
-			panic(err)
-		}
-		fmt.Println("New GameState:")
-		fmt.Println(state)
+	case "GameState":
+		fmt.Println("Requesting Game State")
+		receiveGameState(msg)
 
-		saveGameState("game1", &state)
 	}
+}
+
+func receiveGameState(msg *types.WSMessage) {
+	fmt.Println("Recieved game state")
+	var state quacks.GameState
+
+	if err := json.Unmarshal(msg.Data, &state); err != nil {
+		panic(err)
+	}
+	fmt.Println("GameState:")
+	fmt.Println(state)
+
+	saveGameState(state.Id, &state)
 }

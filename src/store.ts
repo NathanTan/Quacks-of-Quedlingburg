@@ -6,7 +6,7 @@ import Player from "./interfaces/Player"
 class Store {
   message = "Hello, Store!"
   state = {
-    players: [],
+    Players: [],
     Round: 0,
     fortune: 0,
     winner: [],
@@ -14,6 +14,7 @@ class Store {
     bombLimit: 0,
     Awaiting: null,
     debug: false,
+    Status: "New Game"
   } as QuacksState
 
 
@@ -35,6 +36,12 @@ class Store {
     this.message = JSON.stringify(this.state);
   }
 
+  getPlayer(index: number): Player  {  
+    if (this.message === "Hello, Store!") {
+      return {} as Player
+    }
+    return this.state.Players[index] ?? {} as Player;
+  }
   
   getPlayerName(index: number): string {  
     if (this.message === "Hello, Store!") {

@@ -13,6 +13,7 @@ interface GameState {
 //   FSM: FSM;
 //   fortuneDeck: Fortune[];
 //   Stats: Stats;
+  Status: string
 }
 
 export default GameState

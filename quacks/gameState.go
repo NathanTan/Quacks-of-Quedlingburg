@@ -29,6 +29,8 @@ type GameState struct {
 	FSM         *fsm.FSM
 	fortuneDeck []Fortune
 	Stats       *Stats
+	Id          string
+	Status      string // Status of the game for client consumption
 }
 
 func (gs *GameState) GameIsOver() bool {
@@ -131,7 +133,7 @@ func (gs GameState) GetPlayerNames() []string {
 	return names
 }
 
-func CreateGameState(playerNames []string, debug bool) *GameState {
+func CreateGameState(playerNames []string, gameId string, debug bool) *GameState {
 	players := setUpPlayers(playerNames)
 
 	gs := &GameState{
@@ -146,6 +148,8 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 		nil,
 		createFortunes(),
 		nil,
+		gameId,
+		"",
 	}
 
 	gs.FSM = fsm.NewFSM(

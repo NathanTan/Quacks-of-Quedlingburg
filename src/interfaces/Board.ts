@@ -1,7 +1,7 @@
 import Chip from './Chip'
 
 interface Board {
-    chips: Chip[]
+    Chips: Chip[]
     nextPosition: number
     testTubePosition: number
     cherryBombValue: number

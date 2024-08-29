@@ -4,7 +4,7 @@ import Board from './Board';
 interface Player {
   Name: string;
   bag: Bag;
-  board: Board;
+  Board: Board;
   isDoneDrawing: boolean;
   hasCompletedTheFortune: boolean;
   hasSpentRubies: boolean;
@@ -14,7 +14,9 @@ interface Player {
   testTubeDropplet: number;
   flask: boolean;
   explosionLimit: number;
+  NextPosition: number
   score: number;
+  CherryBombValue: number
   chooseVictoryPoints: boolean;
   chooseBuying: boolean;
   buyingPower: number;

@@ -3,13 +3,30 @@ package types
 import "github.com/gorilla/websocket"
 
 type Login struct {
-	ClientId int    `json: "clientID"`
-	Username string `json: "userName"`
+	ClientId int    `json:"clientID"`
+	Username string `json:"userName"`
+}
+
+type NewGameStateRequest struct {
+	AuthToken   string   `json:"authToken"`
+	PlayerNames []string `json:"playerNames"`
+}
+
+type GameStateRequest struct {
+	AuthToken string `json:"authToken"`
+	GameId    string `json:"gameId"`
+}
+
+type PlayerMove struct {
+	AuthToken string `json:"authToken"`
+	GameId    string `json:"gameId"`
+	PlayerId  int    `json:"playerId"`
+	Move      string `json:"move"`
 }
 
 type WSMessage struct {
-	Type string `json: "type"`
-	Data []byte `json: "data"`
+	Type string `json:"type"`
+	Data []byte `json:"data"`
 }
 
 type GameClient struct {

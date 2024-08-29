@@ -77,12 +77,13 @@ const Board: React.FC<BoardProps> = observer(({index}) => {
   });
 
 
-  let playerName = myStore.getPlayerName(index);
-  console.log("playerName", playerName);
+  let player = myStore.getPlayer(index);  
 
   return (
     <div style={boardStyle}>
-      <p>Player: {playerName}</p>
+      <p>Player: {player.Name}</p>
+      <p>Cherry Bomb Value: {JSON.stringify(player.CherryBombValue)}</p>
+      <p>NextPosition: {player.NextPosition}</p>
       {/* {<p>Board for player: {myStore.state.players && JSON.stringify(myStore.state.players)}</p>} */}
       {positions.map(({ x, y }, index2) => (
         <Box key={index2} index={index2} x={x} y={y} boxSize={boxSize} />
