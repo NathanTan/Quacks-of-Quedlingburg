@@ -26,13 +26,21 @@ class Store {
   }
 
   updateState(newState: QuacksState) {
+    console.log("1st state", this.state)
     this.state = newState
-    console.log("Update state", this.state)
     console.log("Update new State", newState)
   }
 
   checkState() {
     this.message = JSON.stringify(this.state);
+  }
+
+  
+  getPlayerName(index: number): string {  
+    if (this.message === "Hello, Store!") {
+      return ""
+    }
+    return this.state.Players[index]?.Name ?? "";
   }
 }
 

@@ -43,6 +43,7 @@ const SendMoveButton: React.FC = () => {
 
       const data = await response.json();
       console.log("data")
+      console.log("Data from send move")
       console.log(data);
       myStore.updateMessage("Updated message " + response.status);
     } catch (error) {

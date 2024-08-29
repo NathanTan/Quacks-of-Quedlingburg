@@ -16,6 +16,7 @@ interface Props {
 const MyComponent: React.FC<Props> = observer(({message}) => {
   return (<div>
     <link rel="manifest" href="/public/manifest.json" />
+    <meta http-equiv="refresh" content="30"></meta>
     <h1>Store Message: {myStore.message}</h1>
     <h1>Props Message: {message}</h1>
     <SendMoveButton /><LogButton /><NewGameButton />

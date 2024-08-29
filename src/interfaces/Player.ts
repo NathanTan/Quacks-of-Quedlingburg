@@ -2,7 +2,7 @@ import Bag from './Bag';
 import Board from './Board';
 
 interface Player {
-  name: string;
+  Name: string;
   bag: Bag;
   board: Board;
   isDoneDrawing: boolean;

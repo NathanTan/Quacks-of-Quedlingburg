@@ -1,6 +1,7 @@
 import React from 'react';
 import Box from './Box';
 import { myStore } from './store';
+import { observer } from 'mobx-react';
 
 interface Position {
   x: number;
@@ -40,7 +41,7 @@ interface BoardProps {
   index: number
 }
 
-const Board: React.FC<BoardProps> = ({index}) => {
+const Board: React.FC<BoardProps> = observer(({index}) => {
   const boxes = Array.from({ length: 30 }, (_, i) => i);
 
   const boardStyle: React.CSSProperties = {
@@ -75,10 +76,14 @@ const Board: React.FC<BoardProps> = ({index}) => {
     return { x, y };
   });
 
+
+  let playerName = myStore.getPlayerName(index);
+  console.log("playerName", playerName);
+
   return (
     <div style={boardStyle}>
-      {/* <p>Player: {myStore.state.players[index]?.name}</p> */}
-      {<p>Board for player: {myStore.state.players && JSON.stringify(myStore.state.players)}</p>}
+      <p>Player: {playerName}</p>
+      {/* {<p>Board for player: {myStore.state.players && JSON.stringify(myStore.state.players)}</p>} */}
       {positions.map(({ x, y }, index2) => (
         <Box key={index2} index={index2} x={x} y={y} boxSize={boxSize} />
       ))}
@@ -89,7 +94,7 @@ const Board: React.FC<BoardProps> = ({index}) => {
       })} */}
     </div>
   );
-};
+});
 
 export default Board;
 

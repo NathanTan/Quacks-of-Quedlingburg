@@ -2,7 +2,7 @@ import Player from './Player';
 import Input from './Input';
 
 interface GameState {
-  players: Player[];
+  Players: Player[];
   Round: number;
   fortune: number;
   winner: number[];
