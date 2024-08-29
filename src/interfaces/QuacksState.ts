@@ -4,7 +4,7 @@ import Input from './Input';
 interface GameState {
   Players: Player[];
   Round: number;
-  fortune: number;
+  Fortune: number;
   winner: number[];
   book: number;
   bombLimit: number;

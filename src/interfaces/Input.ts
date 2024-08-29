@@ -1,7 +1,7 @@
 import Chip from './Chip'
 
 interface Input {
-    description: string
+    Description: string
     options: string[]
     choice: number
     choice2: Chip[]
