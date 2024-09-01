@@ -359,7 +359,12 @@ func receiveGameState(msg *types.WSMessage) {
 		panic(err)
 	}
 	fmt.Println("GameState:")
-	fmt.Println(state)
+	state.PrintGameStateForDebugging()
+
+	// Get the awaiting input for the front end without a refactor
+	if state.Awaiting != nil {
+		state.FrontEndAwaiting = *state.Awaiting
+	}
 
 	saveGameState(state.Id, &state)
 }

@@ -1,13 +1,15 @@
 import React from 'react';
+import { myStore } from './store';
 
 const LogButton: React.FC = () => {
   const handleClick = () => {
-    console.log('Button was clicked');
+    myStore.update()
+    console.log("Updated store")
   };
 
   return (
     <button onClick={handleClick}>
-      Click me
+      Update State
     </button>
   );
 };

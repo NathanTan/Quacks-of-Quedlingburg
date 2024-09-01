@@ -158,6 +158,7 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 
 		fmt.Println("New state: ", state.FSM.Current())
 		saveGameState("game123", state)
+		state.PrintGameStateForDebugging()
 
 		b, err := json.Marshal(state)
 		if err != nil {
@@ -231,6 +232,8 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		state.Status = state.FSM.Current()
 
 		fmt.Println("Starting game ", gs.GameId, " state: ", state.FSM.Current())
+
+		state.PrintGameStateForDebugging()
 
 		b, err := json.Marshal(state)
 		if err != nil {

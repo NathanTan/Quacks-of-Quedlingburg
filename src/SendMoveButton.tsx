@@ -30,6 +30,7 @@ const SendMoveButton: React.FC = observer(() => {
   const sendMove = async () => {
     console.log("Sending move")
     const status = myStore.state.Status
+    console.log("Status from state: " + status)
 
     if (status === "closed") {
       console.log("Status is closed, requesting to start game")
@@ -51,27 +52,27 @@ const SendMoveButton: React.FC = observer(() => {
 
         // Wait for 3 seconds
         // Loop 3 times, waiting 1 second each time and logging
-        for (let i = 1; i <= 3; i++) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          console.log(`Waited ${i} second(s)`);
-        }
+      //   for (let i = 1; i <= 3; i++) {
+      //     await new Promise(resolve => setTimeout(resolve, 1000));
+      //     console.log(`Waited ${i} second(s)`);
+      //   }
 
-        // Make a POST request to /getState
-        const response2 = await fetch('/getState/game123', { method: 'POST' });
+      //   // Make a POST request to /getState
+      //   const response2 = await fetch('/getState/game123', { method: 'POST' });
 
-        // Parse the response as JSON
-        const data2 = await response2.json();
+      //   // Parse the response as JSON
+      //   const data2 = await response2.json();
 
-        // Log the returned value
-        console.log("Data has arrived")
-        console.log(data2);
+      //   // Log the returned value
+      //   console.log("Data has arrived")
+      //   console.log(data2);
 
-        myStore.updateState(data2);
-        myStore.checkState();
+      //   myStore.updateState(data2);
+      //   myStore.checkState();
       } catch (error) {
         console.error('Error:', error);
       }
-    } else {
+    } else if (status === "New Game") {
       try {
         const response = await fetch('/move', {
           method: 'POST',
@@ -96,7 +97,6 @@ const SendMoveButton: React.FC = observer(() => {
     }
   };
 
-  console.log("Rendering SendMoveButton")
 
   return (
     <StyledButton onClick={sendMove} disabled={isButtonDisabled}>

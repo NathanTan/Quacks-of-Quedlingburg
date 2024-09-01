@@ -9,6 +9,7 @@ interface GameState {
   book: number;
   bombLimit: number;
   Awaiting: Input | null;
+  FrontEndAwaiting: Input | null;
   debug: boolean;
 //   FSM: FSM;
 //   fortuneDeck: Fortune[];

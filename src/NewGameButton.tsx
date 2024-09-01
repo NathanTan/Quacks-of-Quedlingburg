@@ -2,43 +2,62 @@ import React from 'react';
 import { myStore } from './store';
 import { observer } from 'mobx-react';
 
-class NewGameButton extends React.Component {
-  handleClick = async () => {
-    // Make a POST request to /requestState
-    await fetch('/requestState', { method: 'POST' });
+interface NewGameButtonState {
+  isVisible: boolean
+}
 
-    // Wait for 3 seconds
-    // Loop 3 times, waiting 1 second each time and logging
-    for (let i = 1; i <= 3; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`Waited ${i} second(s)`);
+
+class NewGameButton extends React.Component<{}, NewGameButtonState> {
+  constructor(props: {}) {
+    super(props)
+    this.state = {
+      isVisible: true
     }
+  }
 
-    // Make a POST request to /getState
-    const response = await fetch('/getState/game123', { method: 'POST' });
+  handleClick = async () => {
+    if (myStore.state.Players.length == 0) {
+      this.setState({ isVisible: false });
 
-    // Parse the response as JSON
-    const data = await response.json();
+      // Make a POST request to /requestState
+      await fetch('/requestState', { method: 'POST' });
 
-    // Log the returned value
-    console.log("Data has arrived")
-    console.log(data);
+      // Wait for 3 seconds
+      // Loop 3 times, waiting 1 second each time and logging
+      for (let i = 1; i <= 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(`Waited ${i} second(s)`);
+      }
 
-    myStore.updateState(data);
-    myStore.checkState();
+      // Make a POST request to /getState
+      const response = await fetch('/getState/game123', { method: 'POST' });
+
+      // Parse the response as JSON
+      const data = await response.json();
+
+      // Log the returned value
+      console.log("Data has arrived")
+      console.log(data);
+
+      myStore.updateState(data);
+      myStore.checkState();
+
+    }
   };
 
-  render() {
-    console.log("zzzz state", myStore.state)
-    const style: React.CSSProperties = {
+  getButtonStyle = (): React.CSSProperties => {
+    return {
       backgroundColor: 'blue',
       color: 'white',
       padding: '10px',
       borderRadius: '5px',
       border: 'none',
-      visibility: (myStore.state.Players.length === 0) ? 'visible' : 'hidden',
-    }
-    return <button style={style} onClick={this.handleClick}>New Game Button</button>;
+      visibility: this.state.isVisible ? 'visible' : 'hidden',
+    };
+  };
+
+  render() {
+    return <button style={this.getButtonStyle()} onClick={this.handleClick}>New Game Button</button>;
   }
 }
 

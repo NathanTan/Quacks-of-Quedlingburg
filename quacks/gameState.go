@@ -9,7 +9,7 @@ import (
 )
 
 type Input struct {
-	Description string
+	Description string `json:"Description"`
 	Options     []string
 	Choice      int
 	Choice2     []Chip // todo refactor for buying chips
@@ -18,23 +18,44 @@ type Input struct {
 }
 
 type GameState struct {
-	Players     []Player
-	Round       int
-	fortune     int
-	winner      []int
-	book        int
-	bombLimit   int
-	Awaiting    *Input
-	debug       bool
-	FSM         *fsm.FSM
-	fortuneDeck []Fortune
-	Stats       *Stats
-	Id          string
-	Status      string // Status of the game for client consumption
+	Players   []Player
+	Round     int
+	fortune   int
+	winner    []int
+	book      int
+	bombLimit int
+	Awaiting  *Input `json:"Input"`
+
+	// Having this here allows us to pass the input to the front end without a refactor
+	FrontEndAwaiting Input `json:"FrontEndInput"`
+	debug            bool
+	FSM              *fsm.FSM
+	fortuneDeck      []Fortune
+	Stats            *Stats `json:"Stats"`
+	Id               string
+	Status           string // Status of the game for client consumption
 }
 
 func (gs *GameState) GameIsOver() bool {
 	return len(gs.winner) > 0
+}
+
+func (gs *GameState) PrintGameStateForDebugging() {
+	fmt.Printf("GameState: %v\n", gs)
+	fmt.Printf("Players: %v\n", gs.Players)
+	fmt.Printf("Round: %v\n", gs.Round)
+	fmt.Printf("Fortune: %v\n", gs.fortune)
+	fmt.Printf("Winner: %v\n", gs.winner)
+	fmt.Printf("Book: %v\n", gs.book)
+	fmt.Printf("BombLimit: %v\n", gs.bombLimit)
+	fmt.Printf("Awaiting: %v\n", gs.Awaiting)
+	fmt.Printf("FrontEndAwaiting: %v\n", gs.FrontEndAwaiting)
+	fmt.Printf("Debug: %v\n", gs.debug)
+	fmt.Printf("FSM: %v\n", gs.FSM.Current())
+	fmt.Printf("FortuneDeck: %v\n", gs.fortuneDeck)
+	fmt.Printf("Stats: %v\n", gs.Stats)
+	fmt.Printf("Id: %v\n", gs.Id)
+	fmt.Printf("Status: %v\n", gs.Status)
 }
 
 func (gs *GameState) enterState(e *fsm.Event) {
@@ -144,6 +165,7 @@ func CreateGameState(playerNames []string, gameId string, debug bool) *GameState
 		1,
 		7,
 		nil,
+		Input{},
 		debug,
 		nil,
 		createFortunes(),

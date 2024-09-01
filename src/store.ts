@@ -5,14 +5,16 @@ import Player from "./interfaces/Player"
 
 class Store {
   message = "Hello, Store!"
+  turnFortune = new Map<number, string>()
   state = {
     Players: [],
     Round: 0,
-    fortune: 0,
+    Fortune: 0,
     winner: [],
     book: 0,
     bombLimit: 0,
     Awaiting: null,
+    FrontEndAwaiting: null,
     debug: false,
     Status: "New Game"
   } as QuacksState
@@ -34,6 +36,30 @@ class Store {
 
   checkState() {
     this.message = JSON.stringify(this.state);
+  }
+
+  updateFortune(round: number, fortuneDescription: string) {
+    // Only set the fortune if it hasn't been set yet
+    if (this.state.Round === round && !this.turnFortune.has(round)) {
+      this.turnFortune.set(round, fortuneDescription)
+    }
+  }
+
+  async update() {
+      // Make a POST request to /getState
+      const response = await fetch('/getState/game123', { method: 'POST' });
+
+      // Parse the response as JSON
+      // const data = await response.json() as QuacksState;
+      const data = await response.json()
+
+      // Log the returned value
+      console.log("Data has arrived")
+      console.log(data);
+
+      const fortuneText = data.Input?.Description ?? "No Fortune";
+      this.updateFortune(data.Round, fortuneText)
+
   }
 
   getPlayer(index: number): Player  {  
