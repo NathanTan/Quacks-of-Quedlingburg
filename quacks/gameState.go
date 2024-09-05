@@ -9,7 +9,7 @@ import (
 )
 
 type Input struct {
-	Description string
+	Description string `json:"Description"`
 	Options     []string
 	Choice      int
 	Choice2     []Chip // todo refactor for buying chips
@@ -18,21 +18,44 @@ type Input struct {
 }
 
 type GameState struct {
-	players     []Player
-	Round       int
-	fortune     int
-	winner      []int
-	book        int
-	bombLimit   int
-	Awaiting    *Input
-	debug       bool
-	FSM         *fsm.FSM
-	fortuneDeck []Fortune
-	Stats       *Stats
+	Players   []Player
+	Round     int
+	fortune   int
+	winner    []int
+	book      int
+	bombLimit int
+	Awaiting  *Input `json:"Input"`
+
+	// Having this here allows us to pass the input to the front end without a refactor
+	FrontEndAwaiting Input `json:"FrontEndInput"`
+	debug            bool
+	FSM              *fsm.FSM
+	fortuneDeck      []Fortune
+	Stats            *Stats `json:"Stats"`
+	Id               string
+	Status           string // Status of the game for client consumption
 }
 
 func (gs *GameState) GameIsOver() bool {
 	return len(gs.winner) > 0
+}
+
+func (gs *GameState) PrintGameStateForDebugging() {
+	fmt.Printf("GameState: %v\n", gs)
+	fmt.Printf("Players: %v\n", gs.Players)
+	fmt.Printf("Round: %v\n", gs.Round)
+	fmt.Printf("Fortune: %v\n", gs.fortune)
+	fmt.Printf("Winner: %v\n", gs.winner)
+	fmt.Printf("Book: %v\n", gs.book)
+	fmt.Printf("BombLimit: %v\n", gs.bombLimit)
+	fmt.Printf("Awaiting: %v\n", gs.Awaiting)
+	fmt.Printf("FrontEndAwaiting: %v\n", gs.FrontEndAwaiting)
+	fmt.Printf("Debug: %v\n", gs.debug)
+	fmt.Printf("FSM: %v\n", gs.FSM.Current())
+	fmt.Printf("FortuneDeck: %v\n", gs.fortuneDeck)
+	fmt.Printf("Stats: %v\n", gs.Stats)
+	fmt.Printf("Id: %v\n", gs.Id)
+	fmt.Printf("Status: %v\n", gs.Status)
 }
 
 func (gs *GameState) enterState(e *fsm.Event) {
@@ -48,9 +71,9 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		if gs.debug {
 			fmt.Println("Resetting buy flag for all players")
 		}
-		for _, player := range gs.players {
+		for _, player := range gs.Players {
 			player.isDoneDrawing = false
-			player.board.cherryBombValue = 0
+			player.Board.CherryBombValue = 0
 			player.hasCompletedTheFortune = false
 			player.hasSpentRubies = false
 		}
@@ -62,8 +85,8 @@ func (gs *GameState) enterState(e *fsm.Event) {
 func (gs GameState) PrintRound() {
 	fmt.Printf("===============\nRound %d\n---------------\n", gs.Round)
 	scores := ""
-	for _, player := range gs.players {
-		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
+	for _, player := range gs.Players {
+		scores = scores + fmt.Sprintf("%s - %d\n", player.Name, player.score)
 	}
 	fmt.Printf("Scores:\n%s\n===============\n", scores)
 
@@ -96,7 +119,7 @@ func GetTopPlayers(players []Player) []int {
 func (gs *GameState) nextRound(e *fsm.Event) {
 	if gs.Round == 9 {
 		// Assign winners here
-		gs.winner = GetTopPlayers(gs.players)
+		gs.winner = GetTopPlayers(gs.Players)
 		return
 	}
 
@@ -104,20 +127,20 @@ func (gs *GameState) nextRound(e *fsm.Event) {
 
 	fmt.Printf("===============\nStarting Round %d\n---------------\n", gs.Round)
 	scores := ""
-	for _, player := range gs.players {
-		scores = scores + fmt.Sprintf("%s - %d\n", player.name, player.score)
+	for _, player := range gs.Players {
+		scores = scores + fmt.Sprintf("%s - %d\n", player.Name, player.score)
 	}
 	fmt.Printf("Scores:\n%s\n===============\n", scores)
 }
 
 func (gs *GameState) GetPlayersByScore() []string {
-	sort.Slice(gs.players, func(i, j int) bool {
-		return gs.players[i].score > gs.players[j].score
+	sort.Slice(gs.Players, func(i, j int) bool {
+		return gs.Players[i].score > gs.Players[j].score
 	})
 
-	playerNames := make([]string, len(gs.players))
-	for i, player := range gs.players {
-		playerNames[i] = player.name
+	playerNames := make([]string, len(gs.Players))
+	for i, player := range gs.Players {
+		playerNames[i] = player.Name
 	}
 
 	return playerNames
@@ -125,13 +148,13 @@ func (gs *GameState) GetPlayersByScore() []string {
 
 func (gs GameState) GetPlayerNames() []string {
 	names := []string{}
-	for _, player := range gs.players {
-		names = append(names, player.name)
+	for _, player := range gs.Players {
+		names = append(names, player.Name)
 	}
 	return names
 }
 
-func CreateGameState(playerNames []string, debug bool) *GameState {
+func CreateGameState(playerNames []string, gameId string, debug bool) *GameState {
 	players := setUpPlayers(playerNames)
 
 	gs := &GameState{
@@ -142,10 +165,13 @@ func CreateGameState(playerNames []string, debug bool) *GameState {
 		1,
 		7,
 		nil,
+		Input{},
 		debug,
 		nil,
 		createFortunes(),
 		nil,
+		gameId,
+		"",
 	}
 
 	gs.FSM = fsm.NewFSM(

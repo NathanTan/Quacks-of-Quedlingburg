@@ -1,5 +1,7 @@
 import React from 'react';
 import Box from './Box';
+import { myStore } from './store';
+import { observer } from 'mobx-react';
 
 interface Position {
   x: number;
@@ -35,7 +37,11 @@ const Line: React.FC<LineProps> = ({ x1, y1, x2, y2 }) => {
   );
 };
 
-const Board: React.FC = () => {
+interface BoardProps {
+  index: number
+}
+
+const Board: React.FC<BoardProps> = observer(({index}) => {
   const boxes = Array.from({ length: 30 }, (_, i) => i);
 
   const boardStyle: React.CSSProperties = {
@@ -44,6 +50,7 @@ const Board: React.FC = () => {
     height: '600px',
     borderRadius: '50%',
     backgroundColor: 'lightgreen',
+    visibility: (myStore.state) ? 'visible' : 'hidden',
   };
 
   const boxStyle: React.CSSProperties = {
@@ -69,10 +76,17 @@ const Board: React.FC = () => {
     return { x, y };
   });
 
+
+  let player = myStore.getPlayer(index);  
+
   return (
     <div style={boardStyle}>
-      {positions.map(({ x, y }, index) => (
-        <Box key={index} index={index} x={x} y={y} boxSize={boxSize} />
+      <p>Player: {player.Name}</p>
+      <p>Cherry Bomb Value: {JSON.stringify(player.CherryBombValue)}</p>
+      <p>NextPosition: {player.NextPosition}</p>
+      {/* {<p>Board for player: {myStore.state.players && JSON.stringify(myStore.state.players)}</p>} */}
+      {positions.map(({ x, y }, index2) => (
+        <Box key={index2} index={index2} x={x} y={y} boxSize={boxSize} />
       ))}
       {/* {positions.map(({ x, y }, index) => {
         if (index === 0) return null;
@@ -81,7 +95,7 @@ const Board: React.FC = () => {
       })} */}
     </div>
   );
-};
+});
 
 export default Board;
 

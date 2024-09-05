@@ -10,7 +10,7 @@ func TestInitalGameState(t *testing.T) {
 
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	if len(GetTopPlayers(gs.players)) != len(playerNames) {
 		t.Errorf("Players don't start with the same amount of points")
@@ -29,7 +29,7 @@ func TestInitalGameState(t *testing.T) {
 func TestHandlePurpleFortune2Rubies(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	// Set up the fortune deck for the test
 	gs.fortuneDeck = append(gs.fortuneDeck, Fortune{
@@ -59,7 +59,7 @@ func TestHandlePurpleFortune2Rubies(t *testing.T) {
 func TestHandlePurpleFortune2VP(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	// Set up the fortune deck for the test
 	gs.fortuneDeck = append(gs.fortuneDeck, Fortune{
@@ -90,7 +90,7 @@ func TestHandlePurpleFortune2VP(t *testing.T) {
 func TestSpendingRubies(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	// Given all the players Rubies to spend
 	for i := range gs.players {
@@ -171,7 +171,7 @@ func TestSpendingRubies(t *testing.T) {
 func TestSpendRubiesOnInvalidPlayer(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames "game123",, true)
 
 	// Given all the players Rubies to spend
 	for i := range gs.players {

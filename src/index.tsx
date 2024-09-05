@@ -1,23 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App'; // adjust the path as necessary
-import { Provider } from 'mobx-react';
-import CounterStore from './store/CounterStore'; // import the CounterStore component
+import ReactDOM from 'react-dom';
+import MyComponent from './MyComponent'; // adjust the path as necessary
+import './store'; // Ensure the store is imported if it needs to be initialized
 
-const counterStore = new CounterStore(); // remove the '()' when creating an instance of CounterStore
-
-// ReactDOM.render(
-//     <Provider CounterStore={counterStore}>
-//         <App />
-//     </Provider>,
-//     document.getElementById('root')
-// );
-
-// const root = ReactDOM.createRoot(document.getElementById('root'));
-const root = ReactDOM.createRoot(document.getElementById('root') ?? document.createElement('div'));
-
-root.render(
-    <Provider CounterStore={counterStore}>
-        <App />
-    </Provider>,
+ReactDOM.render(
+    <React.StrictMode>
+        <MyComponent message="Hello, World!"/>
+    </React.StrictMode>,
+    document.getElementById('root')
 );

@@ -1,55 +1,64 @@
 import React from 'react';
-import styled from 'styled-components';
+import { myStore } from './store';
+import { observer } from 'mobx-react';
+
+interface NewGameButtonState {
+  isVisible: boolean
+}
 
 
-
-const StyledButton = styled.button`
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  transition-duration: 0.4s;
-  border-radius: 12px;
-
-  &:hover {
-    background-color: #45a049;
+class NewGameButton extends React.Component<{}, NewGameButtonState> {
+  constructor(props: {}) {
+    super(props)
+    this.state = {
+      isVisible: true
+    }
   }
-`;
-
-class NewGameButton extends React.Component {
 
   handleClick = async () => {
-    // Make a POST request to /requestState
-    await fetch('/requestState', { method: 'POST' });
+    if (myStore.state.Players.length == 0) {
+      this.setState({ isVisible: false });
 
-    // Wait for 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000));
+      // Make a POST request to /requestState
+      await fetch('/requestState', { method: 'POST' });
 
-    // Make a POST request to /getState
-    const response = await fetch('/getState', { method: 'POST' });
+      // Wait for 3 seconds
+      // Loop 3 times, waiting 1 second each time and logging
+      for (let i = 1; i <= 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(`Waited ${i} second(s)`);
+      }
 
-    // Parse the response as JSON
-    const data = await response.json();
+      // Make a POST request to /getState
+      const response = await fetch('/getState/game123', { method: 'POST' });
 
-    // Log the returned value
-    console.log(data);
+      // Parse the response as JSON
+      const data = await response.json();
+
+      // Log the returned value
+      console.log("Data has arrived")
+      console.log(data);
+
+      myStore.updateState(data);
+      myStore.checkState();
+
+    }
   };
 
-  isButtonDisabled = false;
+  getButtonStyle = (): React.CSSProperties => {
+    return {
+      backgroundColor: 'blue',
+      color: 'white',
+      padding: '10px',
+      borderRadius: '5px',
+      border: 'none',
+      visibility: this.state.isVisible ? 'visible' : 'hidden',
+    };
+  };
 
   render() {
-    return (
-      <StyledButton onClick={this.handleClick} disabled={this.isButtonDisabled}>
-        Create New Game
-      </StyledButton>
-    );
+    return <button style={this.getButtonStyle()} onClick={this.handleClick}>New Game Button</button>;
   }
 }
 
-export default NewGameButton;
+export default observer(NewGameButton);

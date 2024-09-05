@@ -74,7 +74,7 @@ func TestRollDiceForPlayer(t *testing.T) {
 func TestStartGame(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	if gs.FSM.Current() != ClosedState.String() {
 		t.Errorf("Game does not begin with Closed State")
@@ -92,7 +92,7 @@ func TestStartGame(t *testing.T) {
 func TestStartGameWithInputFortune(t *testing.T) {
 	playerNames := []string{"Nathan", "Leah", "Raymond", "Hannah"}
 
-	gs := CreateGameState(playerNames, true)
+	gs := CreateGameState(playerNames, "game123", true)
 
 	// Set up the fortune deck for the test
 
