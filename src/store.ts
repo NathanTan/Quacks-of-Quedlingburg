@@ -66,6 +66,11 @@ class Store {
     if (this.message === "Hello, Store!") {
       return {} as Player
     }
+
+    if (this.state == null) {
+      return {} as Player 
+    }
+
     return this.state.Players[index] ?? {} as Player;
   }
   
