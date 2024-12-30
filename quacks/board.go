@@ -16,6 +16,14 @@ type Slot struct {
 	hasRuby      bool
 }
 
+func (b *Board) PrettyPrintString() string {
+	s := ""
+	for _, c := range b.Chips {
+		s += fmt.Sprintf("{%s %d}, ", c.Color, c.Value)
+	}
+	return s
+}
+
 func getStandardBoard() []Slot {
 	return []Slot{
 		{0, 0, 0, false},

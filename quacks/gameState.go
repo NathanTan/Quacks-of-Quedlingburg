@@ -36,11 +36,25 @@ type GameState struct {
 	Status           string // Status of the game for client consumption
 }
 
+func (gs *GameState) PrettyPrint() {
+	s := ""
+
+	s += fmt.Sprintf("Boards:\n")
+	for _, player := range gs.Players {
+		s += fmt.Sprintf("Player: %s", player.Name)
+		s += fmt.Sprintf("%s", player.Board.PrettyPrintString())
+		s += fmt.Sprintf("\n")
+	}
+
+	fmt.Print(s)
+}
+
 func (gs *GameState) GameIsOver() bool {
 	return len(gs.winner) > 0
 }
 
 func (gs *GameState) PrintGameStateForDebugging() {
+	gs.PrettyPrint()
 	fmt.Printf("GameState: %v\n", gs)
 	fmt.Printf("Players: %v\n", gs.Players)
 	fmt.Printf("Round: %v\n", gs.Round)
@@ -65,6 +79,17 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		fmt.Printf("Entering %s from %s\n\n", e.Dst, e.Src)
 	}
 
+	if e.Dst == RubySpendingState.String() {
+		if gs.debug {
+			fmt.Println("Clearing all fortune flags")
+		}
+		for _, player := range gs.Players {
+			player.hasCompletedTheFortune = false
+		}
+
+		gs.fortune = -1
+	}
+
 	// reset buying flag
 	// Reset Cherry Bomb count
 	if e.Dst == FortuneState.String() {
@@ -74,11 +99,10 @@ func (gs *GameState) enterState(e *fsm.Event) {
 		for _, player := range gs.Players {
 			player.isDoneDrawing = false
 			player.Board.CherryBombValue = 0
-			player.hasCompletedTheFortune = false
+			// player.hasCompletedTheFortune = false
 			player.hasSpentRubies = false
 		}
 
-		gs.fortune = -1
 	}
 }
 

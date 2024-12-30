@@ -242,23 +242,50 @@ func main() {
 		}
 	})
 
-	r.POST("/move", func(gtinContext *gin.Context) {
+	r.POST("/startGame", func(gtinContext *gin.Context) {
 		fmt.Println("Move received")
 
-		var playerMove types.PlayerMove
-		if err := gtinContext.BindJSON(&playerMove); err != nil {
+		var incomingMove types.PlayerMove
+		var outGoingMove types.PlayerMove
+		if err := gtinContext.BindJSON(&incomingMove); err != nil {
 			// Handle error, maybe return a bad request status to the client
 			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		fmt.Println("Player Move: ", playerMove)
+		fmt.Println("Player Move: ", incomingMove)
 
-		playerMove.AuthToken = "123"
-		playerMove.GameId = "game123"
-		playerMove.PlayerId = 1
+		outGoingMove.AuthToken = "123"
+		outGoingMove.GameId = "game123"
+		outGoingMove.PlayerId = incomingMove.PlayerId
+		outGoingMove.Move = "DrawChip"
+		outGoingMove.Type = types.StartGame
 
-		sendGameMove(conn, playerMove)
+		sendGameMove(conn, outGoingMove)
+
+	})
+
+	r.POST("/move", func(gtinContext *gin.Context) {
+		fmt.Println("Move received")
+
+		var incomingMove types.PlayerMove
+		var outGoingMove types.PlayerMove
+		if err := gtinContext.BindJSON(&incomingMove); err != nil {
+			// Handle error, maybe return a bad request status to the client
+			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		fmt.Println("Player Move: ", incomingMove)
+
+		outGoingMove.AuthToken = "123"
+		outGoingMove.GameId = "game123"
+		outGoingMove.PlayerId = incomingMove.PlayerId
+		outGoingMove.Move = "1"
+		outGoingMove.Type = types.InputFortune
+		fmt.Println("Outgoing Move: ", outGoingMove)
+
+		sendGameMove(conn, outGoingMove)
 
 	})
 

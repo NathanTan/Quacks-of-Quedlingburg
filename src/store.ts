@@ -6,6 +6,7 @@ import Player from "./interfaces/Player"
 class Store {
   message = "Hello, Store!"
   turnFortune = new Map<number, string>()
+  activePlayer = 0
   state = {
     Players: [],
     Round: 0,
@@ -39,8 +40,13 @@ class Store {
   }
 
   updateFortune(round: number, fortuneDescription: string) {
+
+    if (this.state.debug)
+        console.log("Updating Fortune for Round", round, "State Round:", this.state.Round, "Round Does Not Yet Have the Fortune:", !this.turnFortune.has(round))
+
     // Only set the fortune if it hasn't been set yet
-    if (this.state.Round === round && !this.turnFortune.has(round)) {
+    if ((this.state.Round === round && !this.turnFortune.has(round)) ||
+        this.turnFortune.get(round) === "No Fortune") {  
       this.turnFortune.set(round, fortuneDescription)
     }
   }
@@ -58,9 +64,13 @@ class Store {
       console.log(data);
 
       const fortuneText = data.Input?.Description ?? "No Fortune";
+      console.log("Fortune Text", fortuneText)
       this.updateFortune(data.Round, fortuneText)
 
-  }
+      if (data.Input)
+        this.state.Status = "Open"
+      
+    }
 
   getPlayer(index: number): Player  {  
     if (this.message === "Hello, Store!") {

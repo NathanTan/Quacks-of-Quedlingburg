@@ -21,7 +21,8 @@ type PlayerMove struct {
 	AuthToken string `json:"authToken"`
 	GameId    string `json:"gameId"`
 	PlayerId  int    `json:"playerId"`
-	Move      string `json:"move"`
+	Move      string `json:"move"` // Ex "DrawChip", "1", "2", ""
+	Type      string `json:"type"` // Ex "Draw", "Input"
 }
 
 type WSMessage struct {

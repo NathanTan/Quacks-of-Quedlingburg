@@ -38,6 +38,8 @@ func (gs *GameState) Input(input Input) Error {
 		handleFortune(gs, input, gs.fortune, gs.debug)
 	}
 	if gs.FSM.Current() == FortuneInputState.String() {
+		fmt.Printf("Player %d choses %d\n", input.Player, input.Choice)
+
 		handleFortune(gs, input, gs.fortune, gs.debug)
 		gs.FSM.Event(context.Background(), HandleFortune.String())
 	}
@@ -241,14 +243,20 @@ func (gs *GameState) ResumePlay() {
 
 	// Fortune cards
 	if gs.FSM.Current() == FortuneState.String() {
-		if gs.fortune != -1 {
-			// Draw a fortune for the first time
+		if gs.fortune != -1 && len(gs.GetRemainingFortunePlayers()) == len(gs.Players) {
+			// Draw a fortune for the first time in the round
 			drawFortune(gs, gs.fortuneDeck, gs.debug)
 		}
 
 		// Check if all players have inputted for their fortune
 		if len(gs.GetRemainingFortunePlayers()) == 0 {
 			gs.FSM.Event(context.Background(), AssignRatTails.String())
+		} else {
+			gs.FSM.Event(context.Background(), ReadFortune.String())
+
+			if gs.debug {
+				fmt.Printf("Remaining Players for fortune input: %v\n", gs.GetRemainingFortunePlayers())
+			}
 		}
 	}
 
@@ -281,15 +289,21 @@ func (gs *GameState) ResumePlay() {
 
 		// Make it so they check if they're done, and if so move to the next game state - TODO: Pick up here
 		playersAreDone := true
+		var remainingPlayers []int
+
 		for i := range gs.Players {
 			// if gs.debug {
 			// 	fmt.Printf("Player '%s' is done drawing chips - %t\n", gs.Players[i].Name, gs.Players[i].IsDoneDrawing(gs.bombLimit))
 			// }
 			playersAreDone = playersAreDone && gs.Players[i].IsDoneDrawing(gs.bombLimit)
+			if gs.Players[i].IsDoneDrawing(gs.bombLimit) {
+				remainingPlayers = append(remainingPlayers, i)
+			}
 		}
 
 		if gs.debug {
 			fmt.Printf("playersAreDone: %t\n", playersAreDone)
+			fmt.Printf("Remaing Players: %+v\n", remainingPlayers)
 		}
 
 		if playersAreDone {
@@ -466,6 +480,10 @@ func pullAndPlaceChip(player *Player, debug bool) {
 	}
 }
 
+func (gs *GameState) SetDebug() {
+	gs.debug = true
+}
+
 func (gs *GameState) StartGame() {
 	gs.FSM.Event(context.Background(), Start.String())
 	// Fortune cards
@@ -538,7 +556,7 @@ func (gs GameState) GetRemainingRubySpendingPlayerNames() []string {
 }
 
 // TODO: is this a bug in the 2nd if???
-func (gs GameState) GetRemainingBuyingPlayers() []string {
+func (gs *GameState) GetRemainingBuyingPlayers() []string {
 	if gs.FSM.Current() == BuyingState.String() || gs.FSM.Current() == BuyingInputState.String() {
 		names := []string{}
 		for _, player := range gs.Players {
@@ -551,10 +569,17 @@ func (gs GameState) GetRemainingBuyingPlayers() []string {
 	return []string{}
 }
 
-func (gs GameState) GetRemainingFortunePlayers() []string {
-	if gs.FSM.Current() == FortuneInputState.String() {
+func (gs *GameState) GetRemainingFortunePlayers() []string {
+
+	if gs.debug {
+		fmt.Printf("Current State: %s\n", gs.FSM.Current())
+	}
+
+	if gs.FSM.Current() == FortuneInputState.String() || gs.FSM.Current() == FortuneState.String() {
 		names := []string{}
+		fmt.Println(gs.Players)
 		for _, player := range gs.Players {
+			fmt.Printf("Player %s has completed the fortune: %t\n", player.Name, player.hasCompletedTheFortune)
 			if !player.hasCompletedTheFortune {
 				names = append(names, player.Name)
 			}
@@ -664,7 +689,7 @@ func (player *Player) RollBonusDice(debug bool) {
 
 func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 	// Handle Input
-	fmt.Printf("Fortune: %d, choice: %d\n", fortune, input.Choice)
+	fmt.Printf("Fortune: %d, choice: %d, player: %d\n", fortune, input.Choice, input.Player)
 
 	if fortune == 2 {
 		if input.Choice == 1 {
@@ -679,14 +704,20 @@ func handleFortune(gs *GameState, input Input, fortune int, debug bool) {
 	} else if fortune == 5 {
 		// Gain 4 VP
 		if input.Choice == 1 {
+			if debug {
+				fmt.Printf("Player %d, %s gains 4 VP\n", input.Player, gs.Players[input.Player].Name)
+			}
 			gs.Players[input.Player].score += 4
 		} else if input.Choice == 2 {
+			if debug {
+				fmt.Println("Player %d, %s Removes 1 White 1 Cherry Bomb, Perminately", input.Player, gs.Players[input.Player].Name)
+			}
 			// Remove a 1 Cherry bomb perminately
 			gs.Players[input.Player].bag.DeleteChip(NewChip(White.String(), 1))
 		}
 		gs.Players[input.Player].hasCompletedTheFortune = true
 	} else {
-		fmt.Printf("========================\nFORTUNE NOT HANDLED YET - id: %d \n========================", fortune)
+		fmt.Printf("========================\nFORTUNE NOT HANDLED YET - id: %d \n========================\n", fortune)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"quacks"
+	"strconv"
 	"sync"
 	"types"
 
@@ -139,18 +140,34 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 		fmt.Printf("Conducted login for id: %d, name: %s\n", s.clientId, s.username)
 
 	case "PlayerMove":
-		var pm types.PlayerMove
+		var playerMove types.PlayerMove
 
-		if err := json.Unmarshal(msg.Data, &pm); err != nil {
+		if err := json.Unmarshal(msg.Data, &playerMove); err != nil {
 			panic(err)
 		}
 
-		fmt.Println("Recieved player move: ", pm)
+		fmt.Println("Recieved player move: ", playerMove)
 
-		state := getGameState(pm.GameId)
-		if pm.Move == "StartGame" {
+		state := getGameState(playerMove.GameId)
+		if playerMove.Type == types.StartGame {
 			fmt.Println("Starting game")
 			state.StartGame()
+			state.SetDebug()
+		} else if playerMove.Type == types.InputFortune {
+			var input quacks.Input
+
+			choice, err := strconv.Atoi(playerMove.Move)
+			if err != nil {
+				fmt.Println("Invalid move choice:", playerMove.Move)
+				return err
+			}
+
+			input.Choice = choice
+			input.Description = ""
+			input.Player = playerMove.PlayerId
+			state.Input(input)
+			state.ResumePlay()
+
 		} else {
 			fmt.Println("Move not yet implemented")
 		}

@@ -22,6 +22,15 @@ const StyledButton = styled.button`
   }
 `;
 
+const postMove = async (move: any) => {
+  return await fetch('/move', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(move),
+  });
+}
 
 const SendMoveButton: React.FC = observer(() => {
   // const [move, setMove] = useState({ direction: 'up' }); // replace with your actual data
@@ -32,10 +41,21 @@ const SendMoveButton: React.FC = observer(() => {
     const status = myStore.state.Status
     console.log("Status from state: " + status)
 
-    if (status === "closed") {
+    if (status === "Open") {
+      const move = {"authToken": "game123", "gameId": "game123",
+        "move": "1", "type": "Input", "playerId": myStore.activePlayer} 
+      
+      console.log(`Status is ${status}. Sending move ${JSON.stringify(move)}`)
+      const response = await postMove(move)  
+
+      if (!response.ok) {
+        throw new Error('HTTP error ' + response.status);
+      }
+
+    } else if (status === "closed") {
       console.log("Status is closed, requesting to start game")
       try {
-        const response = await fetch('/move', {
+        const response = await fetch('/startGame', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -74,23 +94,21 @@ const SendMoveButton: React.FC = observer(() => {
       }
     } else if (status === "New Game") {
       try {
-        const response = await fetch('/move', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ "move": "up" }),
-        });
-
-        if (!response.ok) {
-          throw new Error('HTTP error ' + response.status);
+        const startMove = {"authToken": "game123", "gameId": "game123",
+          "move": "1", "type": "StartGame"}
+        
+        console.log(`Status is ${status}. Sending move ${startMove}`)
+        const response2 = await postMove(startMove)  
+  
+        if (!response2.ok) {
+          throw new Error('HTTP error ' + response2.status);
         }
 
-        const data = await response.json();
+        const data = await response2.json();
         console.log("data")
         console.log("Data from send move")
         console.log(data);
-        myStore.updateMessage("Updated message " + response.status);
+        myStore.updateMessage("Updated message " + response2.status);
       } catch (error) {
         console.error('Error:', error);
       }
