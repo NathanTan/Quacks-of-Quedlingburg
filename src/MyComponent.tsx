@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import { myStore } from './store'; // adjust the path as necessary
 import Fortune from './Fortune';
 import SendFortuneMoveButton from './SendFortuneMoveButton';
+import DrawChipButton from './DrawChipButton';
 
 // import Board from './Board';
 
@@ -32,6 +33,8 @@ const MyComponent: React.FC<Props> = observer(({message}) => {
     {/* <meta http-equiv="refresh" content="30"></meta> */}
     <h1>Game Status: {myStore.state.Status}</h1>
     <Fortune />
+
+    <DrawChipButton />
     <SendFortuneMoveButton />
     <SendMoveButton />
     <input

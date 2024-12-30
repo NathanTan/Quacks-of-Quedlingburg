@@ -118,7 +118,7 @@ const SendMoveButton: React.FC = observer(() => {
 
   return (
     <StyledButton onClick={sendMove} disabled={isButtonDisabled}>
-      Send Move
+      Initalize Game
     </StyledButton>
   );
 });

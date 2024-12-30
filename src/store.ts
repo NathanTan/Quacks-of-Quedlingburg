@@ -67,8 +67,7 @@ class Store {
       console.log("Fortune Text", fortuneText)
       this.updateFortune(data.Round, fortuneText)
 
-      if (data.Input)
-        this.state.Status = "Open"
+      this.state.Status = data.Status
       
     }
 
