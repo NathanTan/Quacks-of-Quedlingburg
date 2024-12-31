@@ -1,43 +1,33 @@
-import { observer } from 'mobx-react';
-import { myStore } from './store';
-import React from 'react';
+import React, { CSSProperties } from 'react';
+import { observer } from 'mobx-react-lite';
+import { myStore } from './store';  
 
 interface BoxProps {
-  playerIndex: number
-  index: number
-  x: number
-  y: number
-  boxSize: number
+  x: number;
+  y: number;
+  boxSize: number;
+  playerIndex: number;
+  index: number;
 }
 
-const Box: React.FC<BoxProps> = observer(({ playerIndex, index, x, y, boxSize }) => {
-  const boxStyle: React.CSSProperties = {
+const Box: React.FC<BoxProps> = observer(({ x, y, boxSize, playerIndex, index }) => {
+  const boxStyle: CSSProperties = {
     position: 'absolute',
-    width: `${boxSize}px`,
-    height: `${boxSize}px`,
-    backgroundColor: 'lightblue',
-    color: 'black',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    transformOrigin: 'center',
     left: `${x - boxSize / 2}px`,
     top: `${y - boxSize / 2}px`
   };
 
+  const chipText = myStore.getPlayersChip(playerIndex, index);
+
   return (
     <div key={index} style={boxStyle}>
-      {playerIndex},
-      {/* {myStore.getPlayersChip(playerIndex, index)}, */}
-      {/* {JSON.stringify(myStore.state.Players[playerIndex]?.Board?.Chips[index]?.color) ?? "x"}, */}
-      {/* {JSON.stringify(myStore.state.Players[playerIndex]?.Board?.Chips[index]?.value) ?? ""}, */}
-      {myStore.getPlayersChip(playerIndex, index)},
+      {chipText.includes("orange") ? (
+        <img src="/src/public/imgs/Pumpkin2.png" alt="Pumpkin" />
+      ) : (
+        chipText
+      )}
     </div>
   );
-
 });
-
-
-
 
 export default Box;

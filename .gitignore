@@ -15,6 +15,9 @@ bundle.js.LICENSE.txt
 /.pnp
 .pnp.js
 
+/src/public/imgs
+
+
 # testing
 /coverage
 
