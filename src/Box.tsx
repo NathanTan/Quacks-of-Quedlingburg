@@ -1,13 +1,16 @@
+import { observer } from 'mobx-react';
+import { myStore } from './store';
 import React from 'react';
 
 interface BoxProps {
-  index: number;
-  x: number;
-  y: number;
-  boxSize: number;
+  playerIndex: number
+  index: number
+  x: number
+  y: number
+  boxSize: number
 }
 
-const Box: React.FC<BoxProps> = ({ index, x, y, boxSize }) => {
+const Box: React.FC<BoxProps> = observer(({ playerIndex, index, x, y, boxSize }) => {
   const boxStyle: React.CSSProperties = {
     position: 'absolute',
     width: `${boxSize}px`,
@@ -24,9 +27,17 @@ const Box: React.FC<BoxProps> = ({ index, x, y, boxSize }) => {
 
   return (
     <div key={index} style={boxStyle}>
-      {index}
+      {playerIndex},
+      {/* {myStore.getPlayersChip(playerIndex, index)}, */}
+      {/* {JSON.stringify(myStore.state.Players[playerIndex]?.Board?.Chips[index]?.color) ?? "x"}, */}
+      {/* {JSON.stringify(myStore.state.Players[playerIndex]?.Board?.Chips[index]?.value) ?? ""}, */}
+      {myStore.getPlayersChip(playerIndex, index)},
     </div>
   );
-};
+
+});
+
+
+
 
 export default Box;

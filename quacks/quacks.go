@@ -10,10 +10,10 @@ func (gs *GameState) DrawChip(playerName string) {
 		for i, player := range gs.Players {
 			if player.Name == playerName {
 				// Stop when they player's post has exploded
-				if !player.IsDoneDrawing(7) {
+				if !player.IsDoneDrawing(gs.bombLimit) {
 					pullAndPlaceChip(&gs.Players[i], gs.debug)
 					fmt.Printf("Cherry Bomb value is now now now %d\n", player.Board.CherryBombValue)
-					fmt.Printf("Remaining Chips for '%s': %d\n", playerName, len(player.bag.RemainingChips))
+					fmt.Printf("Remaining Chips for '%s': %d\n", playerName, len(player.bag.RemainingChips)-1)
 
 				}
 

@@ -54,6 +54,9 @@ const DrawChipButton: React.FC = observer(() => {
       if (!response.ok) {
         throw new Error('HTTP error ' + response.status);
       }
+
+      myStore.update()
+      
     // } else {
       // console.log(`Status '${status}'is not preparation, cannot send draw a chip`)
     // }

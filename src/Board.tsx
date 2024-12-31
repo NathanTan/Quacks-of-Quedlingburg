@@ -86,7 +86,7 @@ const Board: React.FC<BoardProps> = observer(({index}) => {
       <p>NextPosition: {player.NextPosition}</p>
       {/* {<p>Board for player: {myStore.state.players && JSON.stringify(myStore.state.players)}</p>} */}
       {positions.map(({ x, y }, index2) => (
-        <Box key={index2} index={index2} x={x} y={y} boxSize={boxSize} />
+        <Box playerIndex={index} key={index2} index={index2} x={x} y={y} boxSize={boxSize} />
       ))}
       {/* {positions.map(({ x, y }, index) => {
         if (index === 0) return null;

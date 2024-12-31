@@ -55,8 +55,8 @@ func (gs *GameState) GameIsOver() bool {
 
 func (gs *GameState) PrintGameStateForDebugging() {
 	gs.PrettyPrint()
-	fmt.Printf("GameState: %v\n", gs)
-	fmt.Printf("Players: %v\n", gs.Players)
+	// fmt.Printf("GameState: %v\n", gs)
+	// fmt.Printf("Players: %v\n", gs.Players)
 	fmt.Printf("Round: %v\n", gs.Round)
 	fmt.Printf("Fortune: %v\n", gs.fortune)
 	fmt.Printf("Winner: %v\n", gs.winner)

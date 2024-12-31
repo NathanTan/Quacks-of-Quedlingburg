@@ -75,6 +75,16 @@ class Store {
       console.log("Fortune Text", fortuneText)
       this.updateFortune(data.Round, fortuneText)
 
+      for (let i = 0; i < data.Players.length; i++) { 
+        if (this.state) {
+          if (this.state.Players[i] !== undefined) {
+            let foo = this.state.Players[i]
+            if (foo?.Board)
+              foo.Board = data.Players[i].Board;
+          }
+        }
+        
+      }
       this.state.Status = data.Status
       
     }
@@ -89,6 +99,18 @@ class Store {
     }
 
     return this.state.Players[index] ?? {} as Player;
+  }
+
+  getPlayersChip(playerIndex: number, chipIndex: number): string {
+    if (playerIndex >= 0 && playerIndex < this.state.Players.length) {
+      if (chipIndex >= 0 && chipIndex < (this.state.Players[playerIndex]?.Board?.Chips?.length ?? 0)) {
+        console.log("Board")
+        console.log(JSON.stringify(this.state.Players[playerIndex]?.Board))
+        return (this.state.Players[playerIndex]?.Board?.Chips[chipIndex]?.Color ?? "x") + (this.state.Players[playerIndex]?.Board?.Chips[chipIndex]?.Value ?? "x")
+      }
+    }
+
+    return ""
   }
   
   getPlayerName(index: number): string {  

@@ -57,6 +57,7 @@ const SendFortuneMoveButton: React.FC = observer(() => {
     }
 
     myStore.buttons.DrawChip = true
+    myStore.update()
   };
 
 

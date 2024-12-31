@@ -283,7 +283,7 @@ func sendGameState(s *PlayerSession, messageType string, payload []byte) error {
 
 	jsonMsg, err := json.Marshal(msg)
 
-	fmt.Println("Sending Message: " + string(jsonMsg))
+	// fmt.Println("Sending Message: " + string(jsonMsg))
 
 	// Send the response message
 	err = s.conn.WriteMessage(websocket.TextMessage, jsonMsg)

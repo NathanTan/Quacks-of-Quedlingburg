@@ -48,7 +48,7 @@ const MyComponent: React.FC<Props> = observer(({message}) => {
       />
     <LogButton />
     <NewGameButton />
-    {Array.from({ length: 4 }, (_, i) => <Board key={i} index={i} />)}
+    {Array.from({ length: myStore.state.Players.length }, (_, i) => <Board key={i} index={i} />)}
     </div>
     
   )

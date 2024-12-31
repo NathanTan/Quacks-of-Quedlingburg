@@ -1,6 +1,6 @@
 interface Chip {
-    color: string
-    value: number
+    Color: string
+    Value: number
 }
 
 export default Chip

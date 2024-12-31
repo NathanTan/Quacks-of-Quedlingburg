@@ -4,7 +4,7 @@ import Board from './Board';
 interface Player {
   Name: string;
   bag: Bag;
-  Board: Board;
+  Board: Board | undefined;
   isDoneDrawing: boolean;
   hasCompletedTheFortune: boolean;
   hasSpentRubies: boolean;

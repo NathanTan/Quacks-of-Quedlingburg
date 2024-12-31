@@ -33,7 +33,6 @@ const postMove = async (move: any) => {
 }
 
 const ContinueDrawChipButton: React.FC = observer(() => {
-  // const [move, setMove] = useState({ direction: 'up' }); // replace with your actual data
 
   const isButtonDisabled = false;
     myStore.buttons.DrawChip = true
@@ -44,7 +43,6 @@ const ContinueDrawChipButton: React.FC = observer(() => {
     const status = myStore.state.Status
     console.log("Status from state: " + status)
 
-    // if (status == "preparation" || status == "preparation_input") {
       const move = {"authToken": "game123", "gameId": "game123",
         "move": "1", "type": "ContinueDrawInput", "playerId": myStore.activePlayer}
       
@@ -54,9 +52,8 @@ const ContinueDrawChipButton: React.FC = observer(() => {
       if (!response.ok) {
         throw new Error('HTTP error ' + response.status);
       }
-    // } else {
-      // console.log(`Status '${status}'is not preparation, cannot send draw a chip`)
-    // }
+
+      myStore.update()
   };
 
 

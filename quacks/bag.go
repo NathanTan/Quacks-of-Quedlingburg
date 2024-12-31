@@ -28,7 +28,7 @@ func DrawChip(bag *Bag, debug bool) Chip {
 
 	bag.RemainingChips = slice
 
-	bag.RemoveChip(lastElement)
+	// bag.RemoveChip(lastElement)
 
 	return lastElement
 }
