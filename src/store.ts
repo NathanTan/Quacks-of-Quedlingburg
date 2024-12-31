@@ -20,6 +20,14 @@ class Store {
     Status: "New Game"
   } as QuacksState
 
+  buttons = {
+    NewGame: true,
+    DrawChip: false,
+    ContinueDrawChip: false,
+    SendMove: false,
+    SendFortuneMove: false,
+  }
+
 
   constructor() {
     makeAutoObservable(this);

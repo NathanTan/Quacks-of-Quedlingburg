@@ -289,6 +289,54 @@ func main() {
 
 	})
 
+	r.POST("/drawChip", func(gtinContext *gin.Context) {
+		fmt.Println("Move received")
+
+		var incomingMove types.PlayerMove
+		var outGoingMove types.PlayerMove
+		if err := gtinContext.BindJSON(&incomingMove); err != nil {
+			// Handle error, maybe return a bad request status to the client
+			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		fmt.Println("Player Move: ", incomingMove)
+
+		outGoingMove.AuthToken = "123"
+		outGoingMove.GameId = "game123"
+		outGoingMove.PlayerId = incomingMove.PlayerId
+		outGoingMove.Move = incomingMove.Move
+		outGoingMove.Type = types.DrawChip
+		fmt.Println("Outgoing Move: ", outGoingMove)
+
+		sendGameMove(conn, outGoingMove)
+
+	})
+
+	r.POST("/continueDrawChip", func(gtinContext *gin.Context) {
+		fmt.Println("Move received")
+
+		var incomingMove types.PlayerMove
+		var outGoingMove types.PlayerMove
+		if err := gtinContext.BindJSON(&incomingMove); err != nil {
+			// Handle error, maybe return a bad request status to the client
+			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		fmt.Println("Player Move: ", incomingMove)
+
+		outGoingMove.AuthToken = "123"
+		outGoingMove.GameId = "game123"
+		outGoingMove.PlayerId = incomingMove.PlayerId
+		outGoingMove.Move = incomingMove.Move
+		outGoingMove.Type = types.ContinueDrawInput
+		fmt.Println("Outgoing Move: ", outGoingMove)
+
+		sendGameMove(conn, outGoingMove)
+
+	})
+
 	port := ":3000"
 
 	go readLoop(c) // TODO: Fix the connection so that it isn't the same for every client

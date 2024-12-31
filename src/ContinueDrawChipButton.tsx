@@ -4,7 +4,7 @@ import { myStore } from './store';
 import { observer } from 'mobx-react';
 
 const StyledButton = styled.button`
-  background-color:rgb(118, 175, 120); /* Green */
+  background-color:rgb(36, 83, 252); /* Green */
   border: none;
   color: white;
   padding: 15px 32px;
@@ -23,7 +23,7 @@ const StyledButton = styled.button`
 `;
 
 const postMove = async (move: any) => {
-  return await fetch('/move', {
+  return await fetch('/continueDrawChip', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -32,19 +32,21 @@ const postMove = async (move: any) => {
   });
 }
 
-const SendFortuneMoveButton: React.FC = observer(() => {
+const ContinueDrawChipButton: React.FC = observer(() => {
   // const [move, setMove] = useState({ direction: 'up' }); // replace with your actual data
 
   const isButtonDisabled = false;
-  myStore.buttons.DrawChip = true
+    myStore.buttons.DrawChip = true
+    myStore.buttons.ContinueDrawChip = false
+
   const sendMove = async () => {
     console.log("Sending fortune move")
     const status = myStore.state.Status
     console.log("Status from state: " + status)
 
-    if (status === "fortune_input") {
+    // if (status == "preparation" || status == "preparation_input") {
       const move = {"authToken": "game123", "gameId": "game123",
-        "move": "1", "type": "Input", "playerId": myStore.activePlayer}
+        "move": "1", "type": "ContinueDrawInput", "playerId": myStore.activePlayer}
       
       console.log(`Status is ${status}. Sending move ${JSON.stringify(move)}`)
       const response = await postMove(move)  
@@ -52,19 +54,17 @@ const SendFortuneMoveButton: React.FC = observer(() => {
       if (!response.ok) {
         throw new Error('HTTP error ' + response.status);
       }
-    } else {
-      console.log(`Status '${status}'is not fortune, cannot send fortune move`)
-    }
-
-    myStore.buttons.DrawChip = true
+    // } else {
+      // console.log(`Status '${status}'is not preparation, cannot send draw a chip`)
+    // }
   };
 
 
   return (
     <StyledButton onClick={sendMove} disabled={isButtonDisabled}>
-      Send Fortune Move
+      Continue Draw Chip
     </StyledButton>
   );
 });
 
-export default SendFortuneMoveButton;
+export default ContinueDrawChipButton;

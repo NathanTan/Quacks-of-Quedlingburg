@@ -8,6 +8,7 @@ import { myStore } from './store'; // adjust the path as necessary
 import Fortune from './Fortune';
 import SendFortuneMoveButton from './SendFortuneMoveButton';
 import DrawChipButton from './DrawChipButton';
+import ContinueDrawChipButton from './ContinueDrawChipButton';
 
 // import Board from './Board';
 
@@ -34,6 +35,7 @@ const MyComponent: React.FC<Props> = observer(({message}) => {
     <h1>Game Status: {myStore.state.Status}</h1>
     <Fortune />
 
+    <ContinueDrawChipButton />
     <DrawChipButton />
     <SendFortuneMoveButton />
     <SendMoveButton />

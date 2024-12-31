@@ -153,6 +153,17 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 			fmt.Println("Starting game")
 			state.StartGame()
 			state.SetDebug()
+
+		} else if playerMove.Type == types.DrawChip {
+
+			fmt.Println("Drawing chip")
+			state.DrawChip(state.Players[playerMove.PlayerId].Name)
+
+		} else if playerMove.Type == types.ContinueDrawInput {
+			// Let the game know we want to keep pulling
+			input := quacks.Input{Choice: 1, Player: playerMove.PlayerId}
+			state.Input(input)
+
 		} else if playerMove.Type == types.InputFortune {
 			var input quacks.Input
 
@@ -165,6 +176,7 @@ func (s *PlayerSession) handleMessage(msg *types.WSMessage) error {
 			input.Choice = choice
 			input.Description = ""
 			input.Player = playerMove.PlayerId
+
 			state.Input(input)
 			state.ResumePlay()
 

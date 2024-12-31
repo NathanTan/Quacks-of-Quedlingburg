@@ -23,7 +23,7 @@ const StyledButton = styled.button`
 `;
 
 const postMove = async (move: any) => {
-  return await fetch('/move', {
+  return await fetch('/drawChip', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -36,6 +36,9 @@ const DrawChipButton: React.FC = observer(() => {
   // const [move, setMove] = useState({ direction: 'up' }); // replace with your actual data
 
   const isButtonDisabled = false;
+  myStore.buttons.DrawChip = false
+  myStore.buttons.ContinueDrawChip = true
+
   const sendMove = async () => {
     console.log("Sending fortune move")
     const status = myStore.state.Status
@@ -43,7 +46,7 @@ const DrawChipButton: React.FC = observer(() => {
 
     // if (status == "preparation" || status == "preparation_input") {
       const move = {"authToken": "game123", "gameId": "game123",
-        "move": "1", "type": "Input", "playerId": myStore.activePlayer}
+        "move": "1", "type": "DrawChip", "playerId": myStore.activePlayer}
       
       console.log(`Status is ${status}. Sending move ${JSON.stringify(move)}`)
       const response = await postMove(move)  
