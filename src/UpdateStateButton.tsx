@@ -2,8 +2,10 @@ import React from 'react';
 import { myStore } from './store';
 
 const LogButton: React.FC = () => {
-  const handleClick = () => {
-    myStore.update()
+  const handleClick = async () => {
+    await myStore.update()
+          // myStore.updateState(data);
+    
     console.log("Updated store")
   };
 

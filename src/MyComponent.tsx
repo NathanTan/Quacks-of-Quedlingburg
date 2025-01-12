@@ -34,13 +34,14 @@ const MyComponent: React.FC<Props> = observer(({message}) => {
     {/* <meta http-equiv="refresh" content="30"></meta> */}
     <h1>Game Status: {myStore.state.Status}</h1>
     <Fortune />
+    <h2>Active Player: {JSON.stringify(myStore.state)}</h2>
 
     <ContinueDrawChipButton />
     <DrawChipButton />
     <SendFortuneMoveButton />
     <SendMoveButton />
     <input
-        type="text"
+        type="Player Number"
         value={playerNumber}
         defaultValue="0"
         onChange={handleInputChange}

@@ -15,6 +15,7 @@ class Store {
     book: 0,
     bombLimit: 0,
     Awaiting: null,
+    Input: null,
     FrontEndAwaiting: null,
     debug: false,
     Status: "New Game"

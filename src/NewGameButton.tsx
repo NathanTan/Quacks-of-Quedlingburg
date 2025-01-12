@@ -52,7 +52,7 @@ class NewGameButton extends React.Component<{}, NewGameButtonState> {
       padding: '10px',
       borderRadius: '5px',
       border: 'none',
-      visibility: myStore.buttons.DrawChip || myStore.buttons.ContinueDrawChip ? 'visible' : 'hidden',
+      visibility: this.state.isVisible ? 'visible' : 'hidden',
     };
   };
 

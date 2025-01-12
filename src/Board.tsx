@@ -82,7 +82,7 @@ const Board: React.FC<BoardProps> = observer(({index}) => {
   return (
     <div style={boardStyle}>
       <p>Player: {player.Name}</p>
-      <p>Cherry Bomb Value: {JSON.stringify(player.CherryBombValue)}</p>
+      <p>Cherry Bomb Value: {player.CherryBombValue}</p>
       <p>NextPosition: {player.NextPosition}</p>
       {/* {<p>Board for player: {myStore.state.players && JSON.stringify(myStore.state.players)}</p>} */}
       {positions.map(({ x, y }, index2) => (
