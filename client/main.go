@@ -167,14 +167,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Serve React app
-	// r.StaticFS("/", http.Dir("/src/public/index.html"))
 	// Set the router as the default one shipped with Gin
-	// router := gin.Default()
+	r := gin.Default()
 
 	// Serve frontend static files
 	// router.Use(static.Serve("/", static.LocalFile("./src/public", true)))
-	r := gin.Default()
 	// Serve React app
 	// r.StaticFS("/static/public", http.Dir("../src/public")) // Serve static files under the /static route
 	r.StaticFS("/static", http.Dir("../dist")) // Serve static files from the dist directory under the /static route

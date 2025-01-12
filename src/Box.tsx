@@ -22,7 +22,7 @@ const Box: React.FC<BoxProps> = observer(({ x, y, boxSize, playerIndex, index })
   return (
     <div key={index} style={boxStyle}>
       {chipText.includes("orange") ? (
-        <img src="/src/public/imgs/Pumpkin2.png" alt="Pumpkin" />
+        <img src="/static/public/imgs/pumpkin-icon.jpg" alt="Pumpkin" />
       ) : (
         chipText
       )}
