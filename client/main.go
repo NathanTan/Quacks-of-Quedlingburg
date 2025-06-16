@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"os"
 	"quacks"
 	"strconv"
 	"sync"
@@ -174,14 +175,17 @@ func main() {
 	// router.Use(static.Serve("/", static.LocalFile("./src/public", true)))
 	// Serve React app
 	// r.StaticFS("/static/public", http.Dir("../src/public")) // Serve static files under the /static route
-	r.StaticFS("/static", http.Dir("../dist")) // Serve static files from the dist directory under the /static route
+
+	setStaticFiles(r)
+
+	// r.StaticFS("/static", http.Dir("../dist")) // Serve static files from the dist directory under the /static route
 
 	// Serve static files from the dist/public directory
-	r.Static("/public", "./dist/public")
+	// r.Static("/public", "./dist/public")
 
 	// r.StaticFS("/static/public", http.Dir("../src/public")) // Serve static files from the dist directory under the /static route
 	// r.Static("/static", "../src/public") // Serve static files from the dist directory under the /static route
-	r.LoadHTMLGlob("../dist/index.html") // Load HTML files
+	// r.LoadHTMLGlob("../dist/index.html") // Load HTML files
 
 	// // Create a file server for serving static files from the dist directory
 	// distFileServer := http.FileServer(http.Dir("../dist"))
@@ -343,6 +347,35 @@ func main() {
 
 	fmt.Println("Server is running on port" + port)
 
+}
+
+func setStaticFiles(r *gin.Engine) {
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting working directory:", err)
+		return
+	}
+	fmt.Println("Current working directory:", wd)
+
+	// Check if "../dist" exists
+	if _, err := os.Stat("../dist"); err == nil {
+		// Serve static files from "../dist"
+		r.StaticFS("/static", http.Dir("../dist"))
+		log.Println("Serving static files from ../dist")
+		r.LoadHTMLGlob("../dist/index.html") // Load HTML files
+
+	} else if _, err := os.Stat("./dist"); err == nil {
+		// Serve static files from "../"
+		r.StaticFS("/static", http.Dir("./dist"))
+		log.Println("Serving static files from ./dist")
+		r.LoadHTMLGlob("./dist/index.html") // Load HTML files
+
+	} else {
+		log.Fatal("No valid static directory found")
+	}
+
+	// Serve static files from the dist/public directory
+	r.Static("/public", "./dist/public")
 }
 
 func sendGameMove(conn *websocket.Conn, move types.PlayerMove) {

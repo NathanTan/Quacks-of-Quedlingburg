@@ -17,6 +17,8 @@ bundle.js.LICENSE.txt
 
 /src/public/imgs
 
+# logs
+/logs
 
 # testing
 /coverage
