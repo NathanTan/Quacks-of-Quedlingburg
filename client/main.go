@@ -338,6 +338,58 @@ func main() {
 
 	})
 
+	r.GET("/stateOptions", func(gtinContext *gin.Context) {
+		fmt.Println("State Options requested")
+
+		// Get the gameId from query parameter
+		gameID := gtinContext.Query("gameId")
+		if gameID == "" {
+			gtinContext.JSON(http.StatusBadRequest, gin.H{"error": "gameId is required"})
+			return
+		}
+		// Get the game state
+		gameState := getGameState(gameID)
+		if gameState == nil {
+			fmt.Println("Game not found for ID:", gameID)
+			gtinContext.JSON(http.StatusNotFound, gin.H{"error": "Game not found"})
+			return
+		}
+
+		// Get the current state from the FSM
+		currentState := gameState.FSM.Current()
+
+		// Get possible transitions from the current state
+		possibleTransitions := []string{}
+
+		// These are the possible states based on the FSM configuration
+		stateMappings := map[string][]string{
+			"closed":                    {"fortune"},
+			"fortune":                   {"fortune_input", "rat_tails"},
+			"fortune_input":             {"fortune"},
+			"rat_tails":                 {"preparation"},
+			"preparation":               {"preparation_input", "scoring"},
+			"preparation_input":         {"preparation"},
+			"scoring":                   {"scoring_input", "buying_state", "end"},
+			"scoring_input":             {"scoring"},
+			"buying_state":              {"buying_input_state", "ruby_spending_state"},
+			"buying_input_state":        {"buying_state", "scoring"},
+			"ruby_spending_state":       {"ruby_spending_input_state"},
+			"ruby_spending_input_state": {"ruby_spending_state", "fortune"},
+			"end":                       {},
+		}
+
+		if nextStates, exists := stateMappings[currentState]; exists {
+			possibleTransitions = nextStates
+		}
+
+		response := gin.H{
+			"currentState":        currentState,
+			"possibleTransitions": possibleTransitions,
+		}
+
+		gtinContext.JSON(http.StatusOK, response)
+	})
+
 	port := ":3000"
 
 	go readLoop(c) // TODO: Fix the connection so that it isn't the same for every client

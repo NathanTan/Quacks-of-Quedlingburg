@@ -7,6 +7,10 @@ class Store {
   message = "Hello, Store!"
   turnFortune = new Map<number, string>()
   activePlayer = 0
+  stateOptions = {
+    currentState: "",
+    possibleTransitions: [] as string[]
+  }
   state = {
     Players: [],
     Round: 0,
@@ -89,6 +93,29 @@ class Store {
       this.state.Status = data.Status
       
     }
+    
+  async fetchStateOptions() {
+    try {
+      // Make a GET request to /stateOptions with gameId parameter
+      const response = await fetch('/stateOptions?gameId=game123', { method: 'GET' });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      // Parse the response as JSON
+      const data = await response.json();
+      
+      // Update the stateOptions
+      this.stateOptions.currentState = data.currentState;
+      this.stateOptions.possibleTransitions = data.possibleTransitions;
+      
+      // Log the returned value
+      console.log("State options received:", data);
+    } catch (error) {
+      console.error("Failed to fetch state options:", error);
+    }
+  }
 
   getPlayer(index: number): Player  {  
     if (this.message === "Hello, Store!") {
@@ -105,13 +132,32 @@ class Store {
   getPlayersChip(playerIndex: number, chipIndex: number): string {
     if (playerIndex >= 0 && playerIndex < this.state.Players.length) {
       if (chipIndex >= 0 && chipIndex < (this.state.Players[playerIndex]?.Board?.Chips?.length ?? 0)) {
-        console.log("Board")
-        console.log(JSON.stringify(this.state.Players[playerIndex]?.Board))
+        // console.log("Board")
+        // console.log(JSON.stringify(this.state.Players[playerIndex]?.Board))
         return (this.state.Players[playerIndex]?.Board?.Chips[chipIndex]?.Color ?? "x") + (this.state.Players[playerIndex]?.Board?.Chips[chipIndex]?.Value ?? "x")
       }
     }
 
     return ""
+  }
+
+  getPlayerChipColor(playerIndex: number, chipIndex: number): string {
+    // Get the full chip string (e.g., "white1")
+    const chipString = this.getPlayersChip(playerIndex, chipIndex);
+    
+    // Extract only the color part by removing any trailing digits
+    return chipString.replace(/\d+$/, '');
+  }
+
+  getPlayerChipNumber(playerIndex: number, chipIndex: number): number {
+    // Get the full chip string (e.g., "white1")
+    const chipString = this.getPlayersChip(playerIndex, chipIndex);
+    
+    // Extract only the number part using regex
+    const match = chipString.match(/\d+$/);
+    
+    // Return the number if found, otherwise return 0
+    return match ? parseInt(match[0], 10) : 0;
   }
   
   getPlayerName(index: number): string {  
